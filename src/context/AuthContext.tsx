@@ -1,58 +1,77 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import api from "../lib/api";
+import { AuthContext, type AuthUser, type Profile } from "./auth";
 
-interface User {
-  id: string;
-  full_name: string;
-  email: string;
-  role: "superadmin" | "admin" | "employee";
+function readUserFromToken(token: string | null): AuthUser | null {
+  if (!token) return null;
+  try {
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(base64));
+    if (payload.exp * 1000 < Date.now()) return null;
+    return { id: payload.sub, role: payload.role };
+  } catch {
+    return null;
+  }
 }
-
-interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  loading: boolean;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      setUser({ id: payload.sub, role: payload.role, full_name: "", email: "" });
-    }
-    setLoading(false);
-  }, []);
-
-  const login = async (email: string, password: string) => {
-    const response = await api.post("/auth/login", { email, password });
-    const { access_token } = response.data;
-    localStorage.setItem("access_token", access_token);
-
-    const payload = JSON.parse(atob(access_token.split(".")[1]));
-    setUser({ id: payload.sub, role: payload.role, full_name: "", email: "" });
-  };
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const existing = readUserFromToken(localStorage.getItem("access_token"));
+    if (!existing) localStorage.removeItem("access_token");
+    return existing;
+  });
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   const logout = () => {
     localStorage.removeItem("access_token");
     setUser(null);
+    setProfile(null);
   };
 
+  const login = async (email: string, password: string) => {
+    const response = await api.post("/auth/login", { email, password });
+    const token: string = response.data.access_token;
+    localStorage.setItem("access_token", token);
+    setUser(readUserFromToken(token));
+  };
+
+    useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const me = (await api.get("/users/me")).data;
+        let departmentName: string | null = null;
+        if (me.department_id) {
+          const departments = (await api.get("/departments/")).data;
+          departmentName =
+            departments.find((d: { id: string; name: string }) => d.id === me.department_id)?.name ?? null;
+        }
+        if (!cancelled) {
+          setProfile({
+            id: me.id,
+            full_name: me.full_name,
+            email: me.email,
+            role: me.role,
+            start_date: me.start_date,
+            department_name: departmentName,
+            isHr: departmentName?.trim().toLowerCase() === "hr",
+          });
+        }
+      } catch {
+        if (!cancelled) logout();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, profile, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
-}z

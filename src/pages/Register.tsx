@@ -14,8 +14,13 @@ export default function Register() {
     password: "",
     role: "employee",
     department_id: "",
+    start_date:""
   });
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -24,7 +29,9 @@ export default function Register() {
     });
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -38,7 +45,14 @@ export default function Register() {
         department_id: form.department_id || null,
       });
       setMessage({ type: "success", text: "Employee added successfully." });
-      setForm({ full_name: "", email: "", password: "", role: "employee", department_id: "" });
+      setForm({
+        full_name: "",
+        email: "",
+        password: "",
+        role: "employee",
+        department_id: "",
+        start_date:"",
+      });
     } catch (err: any) {
       const detail = err.response?.data?.detail;
       let errorText = "Failed to add employee.";
@@ -67,8 +81,12 @@ export default function Register() {
               RA
             </div>
             <div>
-              <h1 className="text-xl font-bold text-amber-300">Add New Employee</h1>
-              <p className="text-emerald-100 text-sm mt-0.5">Superadmin access only</p>
+              <h1 className="text-xl font-bold text-amber-300">
+                Add New Employee
+              </h1>
+              <p className="text-emerald-100 text-sm mt-0.5">
+                Superadmin access only
+              </p>
             </div>
           </div>
 
@@ -149,6 +167,20 @@ export default function Register() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">
+                Start Date
+              </label>
+              <input
+                type="date"
+                name="start_date"
+                required
+                value={form.start_date}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
             </div>
 
             {message && (

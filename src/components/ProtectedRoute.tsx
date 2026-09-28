@@ -1,22 +1,17 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth, type Role } from "../context/auth";
 
-interface ProtectedRouteProps {
+interface Props {
   children: ReactNode;
-  allowedRoles?: string[];
+  allowedRoles?: Role[];
 }
 
-export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
-
-  if (loading) return <div className="flex items-center justify-center h-screen text-slate-500">Loading...</div>;
+export default function ProtectedRoute({ children, allowedRoles }: Props) {
+  const { user } = useAuth();
 
   if (!user) return <Navigate to="/login" replace />;
-
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
-  }
+  if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/" replace />;
 
   return <>{children}</>;
 }
