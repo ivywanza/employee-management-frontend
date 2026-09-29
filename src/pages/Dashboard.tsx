@@ -59,8 +59,8 @@ export default function DashboardLayout() {
         className={({ isActive }) =>
           `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition ${
             isActive
-              ? "bg-amber-400 text-emerald-950 shadow"
-              : "text-emerald-50/90 hover:bg-white/10"
+              ? "bg-red-600 text-white shadow"
+              : "text-blue-100/90 hover:bg-white/10"
           }`
         }
       >
@@ -73,12 +73,12 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen flex bg-slate-100 dark:bg-slate-950">
-      <aside className="w-64 shrink-0 bg-gradient-to-b from-emerald-950 to-emerald-900 text-white flex flex-col">
+      <aside className="w-64 shrink-0 bg-gradient-to-b from-blue-950 to-blue-900 text-white flex flex-col">
         <div className="flex items-center gap-3 px-5 py-6 border-b border-white/10">
-          <div className="h-10 w-10 rounded-xl bg-amber-400 flex items-center justify-center text-emerald-950 font-extrabold shadow">
+          <div className="h-10 w-10 rounded-xl bg-red-600 flex items-center justify-center text-white font-extrabold shadow">
             RA
           </div>
-          <span className="font-bold text-amber-300">RedAnt Portal</span>
+          <span className="font-bold text-white">RedAnt Portal</span>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
@@ -86,14 +86,14 @@ export default function DashboardLayout() {
 
           {isAdmin && (
             <>
-              <p className="px-4 pt-5 pb-1 text-xs uppercase tracking-wide text-emerald-300/80">Admin</p>
+              <p className="px-4 pt-5 pb-1 text-xs uppercase tracking-wide text-blue-300/80">Admin</p>
               {renderLinks(adminItems)}
             </>
           )}
 
           {canReview && (
             <>
-              <p className="px-4 pt-5 pb-1 text-xs uppercase tracking-wide text-emerald-300/80">Review</p>
+              <p className="px-4 pt-5 pb-1 text-xs uppercase tracking-wide text-blue-300/80">Review</p>
               {renderLinks(reviewItems)}
             </>
           )}
@@ -102,7 +102,7 @@ export default function DashboardLayout() {
         <div className="border-t border-white/10 px-5 py-4">
           <button
             onClick={logout}
-            className="flex items-center gap-2 text-sm text-emerald-100/90 hover:text-white"
+            className="flex items-center gap-2 text-sm text-blue-100/90 hover:text-white"
           >
             <LogOut className="h-4 w-4" />
             Log out
@@ -115,7 +115,7 @@ export default function DashboardLayout() {
           <button
             onClick={toggle}
             aria-label="Toggle light and dark mode"
-            className="h-10 w-10 rounded-full bg-white dark:bg-slate-800 shadow flex items-center justify-center text-slate-600 dark:text-amber-300 hover:scale-105 transition"
+            className="h-10 w-10 rounded-full bg-white dark:bg-slate-800 shadow flex items-center justify-center text-slate-600 dark:text-red-400 hover:scale-105 transition"
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
@@ -127,7 +127,7 @@ export default function DashboardLayout() {
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{user?.role}</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-600 to-lime-500 text-white font-bold flex items-center justify-center shadow">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-800 to-red-600 text-white font-bold flex items-center justify-center shadow">
               {initial}
             </div>
           </div>

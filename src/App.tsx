@@ -6,6 +6,11 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 import ComingSoon from "./pages/ComingSoon";
+import Leave from "./pages/Leave";
+import ReviewLeave from "./pages/ReviewLeave";
+import MySubmissions from "./pages/MySubmissions";
+import DocumentHub from "./pages/DocumentHub";
+
 
 export default function App() {
   return (
@@ -22,14 +27,27 @@ export default function App() {
             }
           >
             <Route path="/" element={<Home />} />
-            <Route path="/leave" element={<ComingSoon title="Apply for Leave" />} />
-            <Route path="/onboarding" element={<ComingSoon title="Onboarding Documents" />} />
-            <Route path="/documents" element={<ComingSoon title="Document Hub" />} />
-            <Route path="/my-submissions" element={<ComingSoon title="My Submissions" />} />
-            <Route path="/employees" element={<ComingSoon title="Employee List" />} />
-            <Route path="/manage-documents" element={<ComingSoon title="Manage Documents" />} />
-            <Route path="/review-leave" element={<ComingSoon title="Review Leave Requests" />} />
-            <Route path="/review-onboarding" element={<ComingSoon title="Review Onboarding Documents" />} />
+            <Route path="/leave" element={<Leave />} />
+            <Route path="/documents" element={<DocumentHub />} />
+            <Route path="/my-submissions" element={<MySubmissions />} />
+            <Route path="/review-leave" element={<ReviewLeave />} />
+
+            <Route
+              path="/employees"
+              element={<ComingSoon title="Employee List" />}
+            />
+            <Route
+              path="/manage-documents"
+              element={<ComingSoon title="Manage Documents" />}
+            />
+            <Route
+              path="/review-leave"
+              element={<ComingSoon title="Review Leave Requests" />}
+            />
+            <Route
+              path="/review-onboarding"
+              element={<ComingSoon title="Review Onboarding Documents" />}
+            />
           </Route>
 
           <Route
