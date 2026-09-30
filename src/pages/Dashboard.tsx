@@ -4,7 +4,6 @@ import {
   CalendarPlus,
   FileUp,
   FolderOpen,
-  // ClipboardList,
   UserPlus,
   Users,
   Folders,
@@ -34,7 +33,7 @@ export default function DashboardLayout() {
   const everyone: NavItem[] = [
     { to: "/", label: "Home", icon: LayoutDashboard },
     { to: "/leave", label: "Apply for Leave", icon: CalendarPlus },
-    // { to: "/my-submissions", label: "Onboarding Documents", icon: FileUp },
+    { to: "/my-submissions", label: "Onboarding Documents", icon: FileUp },
     { to: "/documents", label: "Document Hub", icon: FolderOpen },
   ];
 
@@ -57,9 +56,7 @@ export default function DashboardLayout() {
         end={to === "/"}
         className={({ isActive }) =>
           `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition ${
-            isActive
-              ? "bg-red-600 text-white shadow"
-              : "text-blue-100/90 hover:bg-white/10"
+            isActive ? "bg-red-600 text-white shadow" : "text-blue-100/90 hover:bg-white/10"
           }`
         }
       >
@@ -85,28 +82,21 @@ export default function DashboardLayout() {
 
           {isAdmin && (
             <>
-              <p className="px-4 pt-5 pb-1 text-xs uppercase tracking-wide text-blue-300/80">
-                Admin
-              </p>
+              <p className="px-4 pt-5 pb-1 text-xs uppercase tracking-wide text-blue-300/80">Admin</p>
               {renderLinks(adminItems)}
             </>
           )}
 
           {canReview && (
             <>
-              <p className="px-4 pt-5 pb-1 text-xs uppercase tracking-wide text-blue-300/80">
-                Review
-              </p>
+              <p className="px-4 pt-5 pb-1 text-xs uppercase tracking-wide text-blue-300/80">Review</p>
               {renderLinks(reviewItems)}
             </>
           )}
         </nav>
 
         <div className="border-t border-white/10 px-5 py-4">
-          <button
-            onClick={logout}
-            className="flex items-center gap-2 text-sm text-blue-100/90 hover:text-white"
-          >
+          <button onClick={logout} className="flex items-center gap-2 text-sm text-blue-100/90 hover:text-white">
             <LogOut className="h-4 w-4" />
             Log out
           </button>
@@ -120,11 +110,7 @@ export default function DashboardLayout() {
             aria-label="Toggle light and dark mode"
             className="h-10 w-10 rounded-full bg-white dark:bg-slate-800 shadow flex items-center justify-center text-slate-600 dark:text-red-400 hover:scale-105 transition"
           >
-            {theme === "dark" ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
           <div className="flex items-center gap-3">
@@ -132,9 +118,7 @@ export default function DashboardLayout() {
               <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                 {profile?.full_name ?? "..."}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">
-                {user?.role}
-              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{user?.role}</p>
             </div>
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-800 to-red-600 text-white font-bold flex items-center justify-center shadow">
               {initial}

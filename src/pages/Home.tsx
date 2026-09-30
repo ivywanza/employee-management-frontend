@@ -139,7 +139,7 @@ export default function Home() {
 
   return (
     <div className="max-w-5xl space-y-8">
-      <section className="rounded-3xl bg-gradient-to-r from-emerald-900 via-emerald-700 to-lime-600 p-8 text-white shadow-lg flex flex-wrap items-center justify-between gap-6">
+      <section className="rounded-3xl bg-gradient-to-r from-red-900 via-red-700 to-blue-800 p-8 text-white shadow-lg flex flex-wrap items-center justify-between gap-6">
         <div>
           <p className="text-sm text-emerald-100">{today}</p>
           <h1 className="text-3xl font-bold mt-1">
@@ -181,7 +181,7 @@ export default function Home() {
               to={to}
               className="group rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
             >
-              <div className="h-11 w-11 rounded-xl bg-amber-100 dark:bg-amber-400/20 text-amber-600 dark:text-amber-300 flex items-center justify-center group-hover:bg-amber-400 group-hover:text-emerald-950 transition">
+              <div className="h-11 w-11 rounded-xl bg-amber-100 dark:bg-amber-400/20 text-red-600 dark:text-amber-300 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-emerald-950 transition">
                 <Icon className="h-5 w-5" />
               </div>
               <p className="mt-4 font-semibold text-slate-800 dark:text-slate-100">{label}</p>

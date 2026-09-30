@@ -59,7 +59,7 @@ export default function DashboardLayout() {
         className={({ isActive }) =>
           `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition ${
             isActive
-              ? "bg-amber-400 text-emerald-950 shadow"
+              ? "bg-white text-emerald-950 shadow"
               : "text-emerald-50/90 hover:bg-white/10"
           }`
         }
@@ -73,12 +73,12 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen flex bg-slate-100 dark:bg-slate-950">
-      <aside className="w-64 shrink-0 bg-gradient-to-b from-emerald-950 to-emerald-900 text-white flex flex-col">
+      <aside className="w-64 shrink-0 bg-gradient-to-b from-blue-950 via-blue-900 to-blue-700 text-white flex flex-col">
         <div className="flex items-center gap-3 px-5 py-6 border-b border-white/10">
-          <div className="h-10 w-10 rounded-xl bg-amber-400 flex items-center justify-center text-emerald-950 font-extrabold shadow">
-            RA
+          <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-red-800 font-extrabold shadow">
+            RAI
           </div>
-          <span className="font-bold text-amber-300">RedAnt Portal</span>
+          <span className="font-bold text-white">RAI Portal</span>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
