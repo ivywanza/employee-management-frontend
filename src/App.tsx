@@ -5,11 +5,15 @@ import DashboardLayout from "./components/DashboardLayout";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
-import ComingSoon from "./pages/ComingSoon";
+// import ComingSoon from "./pages/ComingSoon";
 import Leave from "./pages/Leave";
 import ReviewLeave from "./pages/ReviewLeave";
 import MySubmissions from "./pages/MySubmissions";
 import DocumentHub from "./pages/DocumentHub";
+import ManageDocuments from "./pages/ManageDocuments";
+import ReviewOnboarding from "./pages/ReviewOnboarding";
+import EmployeeList from "./pages/EmployeeList";
+
 
 
 export default function App() {
@@ -32,23 +36,11 @@ export default function App() {
             <Route path="/my-submissions" element={<MySubmissions />} />
             <Route path="/review-leave" element={<ReviewLeave />} />
 
-            <Route
-              path="/employees"
-              element={<ComingSoon title="Employee List" />}
-            />
-            <Route
-              path="/manage-documents"
-              element={<ComingSoon title="Manage Documents" />}
-            />
-            <Route
-              path="/review-leave"
-              element={<ComingSoon title="Review Leave Requests" />}
-            />
-            <Route
-              path="/review-onboarding"
-              element={<ComingSoon title="Review Onboarding Documents" />}
-            />
-          </Route>
+            <Route path="/manage-documents" element={<ManageDocuments />} />
+            <Route path="/review-onboarding" element={<ReviewOnboarding />} />
+
+           <Route path="/employees" element={<EmployeeList />} />
+           </Route>
 
           <Route
             path="/add-employee"

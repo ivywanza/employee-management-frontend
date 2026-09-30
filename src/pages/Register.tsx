@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../lib/api";
+import axios from "axios";
 
 interface Department {
   id: string;
@@ -14,7 +15,7 @@ export default function Register() {
     password: "",
     role: "employee",
     department_id: "",
-    start_date:""
+    start_date: "",
   });
 
   const [message, setMessage] = useState<{
@@ -51,16 +52,20 @@ export default function Register() {
         password: "",
         role: "employee",
         department_id: "",
-        start_date:"",
+        start_date: "",
       });
-    } catch (err: any) {
-      const detail = err.response?.data?.detail;
+    } catch (err: unknown) {
       let errorText = "Failed to add employee.";
 
-      if (typeof detail === "string") {
-        errorText = detail;
-      } else if (Array.isArray(detail)) {
-        errorText = detail.map((d: any) => d.msg).join(", ");
+      if (axios.isAxiosError(err)) {
+        const detail = err.response?.data?.detail;
+        if (typeof detail === "string") {
+          errorText = detail;
+        } else if (Array.isArray(detail)) {
+          errorText = detail
+            .map((d: { msg?: string }) => d.msg ?? "Invalid input")
+            .join(", ");
+        }
       }
 
       setMessage({ type: "error", text: errorText });

@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { CalendarPlus } from "lucide-react";
 import api from "../lib/api";
+import axios from "axios";
 
 const LEAVE_TYPES = [
   { value: "sick", label: "Sick Leave" },
   { value: "annual", label: "Annual Leave" },
-  { value: "compassionate", label: "Compassionate Leave" },
   { value: "maternity", label: "Maternity Leave" },
-  { value: "paternity", label: "Paternity Leave" },
-  { value: "unpaid", label: "Unpaid Leave" },
   { value: "other", label: "Other" },
 ];
 
@@ -42,17 +40,16 @@ export default function Leave() {
       await api.post("/leave-requests/", form);
       setMessage({ type: "success", text: "Your leave request has been submitted." });
       setForm({ leave_type: "sick", start_date: "", end_date: "", reason: "" });
-    } catch (err: any) {
-      const detail = err.response?.data?.detail;
-      setMessage({
-        type: "error",
-        text: typeof detail === "string" ? detail : "Failed to submit leave request.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    } catch (err: unknown) {
+  const detail = axios.isAxiosError(err) ? err.response?.data?.detail : undefined;
+  setMessage({
+    type: "error",
+    text: typeof detail === "string" ? detail : "Failed to submit leave request.",
+  });
+} finally {
+  setLoading(false);
+}
+  }
   return (
     <div className="max-w-xl">
       <div className="flex items-center gap-3 mb-6">
@@ -94,13 +91,15 @@ export default function Leave() {
               Start Date
             </label>
             <input
-              type="date"
-              name="start_date"
-              required
-              value={form.start_date}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
-            />
+  type="date"
+  name="start_date"
+  required
+  value={form.start_date}
+  onChange={handleChange}
+  min={new Date().toISOString().split("T")[0]}
+  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+/>
+
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">
