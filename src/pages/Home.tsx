@@ -17,7 +17,7 @@ interface LeaveItem {
   id: string;
   leave_type: string;
   submitted_at: string;
-  reviewed: boolean;
+  status: "pending" | "approved" | "rejected";
 }
 
 interface OnboardingItem {
@@ -40,31 +40,64 @@ interface Stats {
   pendingOnboarding?: number;
 }
 
-function StatCard({ label, value, icon: Icon }: { label: string; value: number; icon: LucideIcon }) {
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: number;
+  icon: LucideIcon;
+}) {
   return (
     <div className="rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-sm flex items-center gap-4">
       <div className="h-12 w-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
         <Icon className="h-5 w-5" />
       </div>
       <div>
-        <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{value}</p>
-        <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
+        <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+          {value}
+        </p>
+        <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          {label}
+        </p>
       </div>
     </div>
   );
 }
 
 const quickActions = [
-  { to: "/leave", label: "Apply for Leave", note: "Request time off", icon: CalendarPlus },
-  { to: "/onboarding", label: "Upload Documents", note: "Send your onboarding files", icon: FileUp },
-  { to: "/documents", label: "Document Hub", note: "Browse company documents", icon: FolderOpen },
-  { to: "/my-submissions", label: "My Submissions", note: "Track what you've sent", icon: ClipboardList },
+  {
+    to: "/leave",
+    label: "Apply for Leave",
+    note: "Request time off",
+    icon: CalendarPlus,
+  },
+  {
+    to: "/onboarding",
+    label: "Upload Documents",
+    note: "Send your onboarding files",
+    icon: FileUp,
+  },
+  {
+    to: "/documents",
+    label: "Document Hub",
+    note: "Browse company documents",
+    icon: FolderOpen,
+  },
+  {
+    to: "/my-submissions",
+    label: "My Submissions",
+    note: "Track what you've sent",
+    icon: ClipboardList,
+  },
 ];
 
 export default function Home() {
   const { profile } = useAuth();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [stats, setStats] = useState<Stats>({});
+  const [now] = useState(() => new Date());
 
   useEffect(() => {
     if (!profile) return;
@@ -82,7 +115,7 @@ export default function Home() {
             key: `leave-${l.id}`,
             title: `${l.leave_type.charAt(0).toUpperCase()}${l.leave_type.slice(1)} leave`,
             date: l.submitted_at,
-            reviewed: l.reviewed,
+            reviewed: l.status !== "pending",
           })),
           ...onboarding.data.map((o) => ({
             key: `onboarding-${o.id}`,
@@ -91,7 +124,9 @@ export default function Home() {
             reviewed: o.reviewed,
           })),
         ]
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+          )
           .slice(0, 5);
         setSubmissions(items);
       } catch {
@@ -109,9 +144,15 @@ export default function Home() {
       if (canReview) {
         try {
           const leave = await api.get<LeaveItem[]>("/leave-requests/");
-          next.pendingLeave = leave.data.filter((l) => !l.reviewed).length;
-          const onboarding = await api.get<OnboardingItem[]>("/onboarding-documents/");
-          next.pendingOnboarding = onboarding.data.filter((o) => !o.reviewed).length;
+          next.pendingLeave = leave.data.filter(
+            (l) => l.status === "pending",
+          ).length;
+          const onboarding = await api.get<OnboardingItem[]>(
+            "/onboarding-documents/",
+          );
+          next.pendingOnboarding = onboarding.data.filter(
+            (o) => !o.reviewed,
+          ).length;
         } catch {
           /* leave undefined */
         }
@@ -120,14 +161,19 @@ export default function Home() {
     })();
   }, [profile]);
 
-  if (!profile) return <p className="text-slate-500 dark:text-slate-400">Loading...</p>;
+  if (!profile)
+    return <p className="text-slate-500 dark:text-slate-400">Loading...</p>;
 
   const start = new Date(profile.start_date.slice(0, 10) + "T00:00:00");
-  const daysEmployed = Math.max(0, Math.floor((Date.now() - start.getTime()) / 86400000));
+  const daysEmployed = Math.max(
+    0,
+    Math.floor((now.getTime() - start.getTime()) / 86400000),
+  );
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  const today = new Date().toLocaleDateString(undefined, {
+  const hour = now.getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const today = now.toLocaleDateString(undefined, {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -135,37 +181,63 @@ export default function Home() {
   });
 
   const hasStats =
-    stats.employees !== undefined || stats.pendingLeave !== undefined || stats.pendingOnboarding !== undefined;
+    stats.employees !== undefined ||
+    stats.pendingLeave !== undefined ||
+    stats.pendingOnboarding !== undefined;
 
   return (
     <div className="max-w-5xl space-y-8">
-      <section className="rounded-3xl bg-gradient-to-r from-red-900 via-red-700 to-blue-800 p-8 text-white shadow-lg flex flex-wrap items-center justify-between gap-6">
+      <section className="rounded-3xl bg-gradient-to-r from-red-700 via-red-800 to-blue-800 p-8 text-white shadow-lg flex flex-wrap items-center justify-between gap-6">
         <div>
           <p className="text-sm text-emerald-100">{today}</p>
           <h1 className="text-3xl font-bold mt-1">
             {greeting}, {profile.full_name.split(" ")[0]}
           </h1>
           <p className="text-emerald-100 mt-1 text-sm">
-            {profile.department_name ?? "No department yet"} · <span className="capitalize">{profile.role}</span>
+            {profile.department_name ?? "No department yet"} ·{" "}
+            <span className="capitalize">{profile.role}</span>
           </p>
         </div>
         <div className="rounded-2xl bg-white/15 backdrop-blur px-6 py-4 text-center">
-          <p className="text-xs uppercase tracking-wide text-emerald-50">Days with RedAnt</p>
-          <p className="text-5xl font-extrabold text-amber-300 leading-tight">{daysEmployed}</p>
+          <p className="text-xs uppercase tracking-wide text-emerald-50">
+            Days with RedAnt
+          </p>
+          <p className="text-5xl font-extrabold text-amber-300 leading-tight">
+            {daysEmployed}
+          </p>
           <p className="text-xs text-emerald-50">
-            Since {start.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+            Since{" "}
+            {start.toLocaleDateString(undefined, {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}
           </p>
         </div>
       </section>
 
       {hasStats && (
         <section className="grid gap-4 sm:grid-cols-3">
-          {stats.employees !== undefined && <StatCard label="Total employees" value={stats.employees} icon={Users} />}
+          {stats.employees !== undefined && (
+            <StatCard
+              label="Total employees"
+              value={stats.employees}
+              icon={Users}
+            />
+          )}
           {stats.pendingLeave !== undefined && (
-            <StatCard label="Leave awaiting review" value={stats.pendingLeave} icon={Clock} />
+            <StatCard
+              label="Leave awaiting review"
+              value={stats.pendingLeave}
+              icon={Clock}
+            />
           )}
           {stats.pendingOnboarding !== undefined && (
-            <StatCard label="Onboarding docs to review" value={stats.pendingOnboarding} icon={FileCheck} />
+            <StatCard
+              label="Onboarding docs to review"
+              value={stats.pendingOnboarding}
+              icon={FileCheck}
+            />
           )}
         </section>
       )}
@@ -184,8 +256,12 @@ export default function Home() {
               <div className="h-11 w-11 rounded-xl bg-amber-100 dark:bg-amber-400/20 text-red-600 dark:text-amber-300 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-emerald-950 transition">
                 <Icon className="h-5 w-5" />
               </div>
-              <p className="mt-4 font-semibold text-slate-800 dark:text-slate-100">{label}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{note}</p>
+              <p className="mt-4 font-semibold text-slate-800 dark:text-slate-100">
+                {label}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                {note}
+              </p>
             </Link>
           ))}
         </div>
@@ -198,13 +274,19 @@ export default function Home() {
         <div className="rounded-2xl bg-white dark:bg-slate-900 shadow-sm divide-y divide-slate-100 dark:divide-slate-800">
           {submissions.length === 0 ? (
             <p className="p-6 text-sm text-slate-500 dark:text-slate-400">
-              Nothing submitted yet. Your leave requests and uploaded documents will show up here.
+              Nothing submitted yet. Your leave requests and uploaded documents
+              will show up here.
             </p>
           ) : (
             submissions.map((s) => (
-              <div key={s.key} className="flex items-center justify-between px-6 py-4">
+              <div
+                key={s.key}
+                className="flex items-center justify-between px-6 py-4"
+              >
                 <div>
-                  <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{s.title}</p>
+                  <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                    {s.title}
+                  </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {new Date(s.date).toLocaleDateString(undefined, {
                       day: "numeric",

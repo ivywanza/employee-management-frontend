@@ -127,7 +127,7 @@ export default function DashboardLayout() {
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{user?.role}</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-600 to-lime-500 text-white font-bold flex items-center justify-center shadow">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-lime-500 text-white font-bold flex items-center justify-center shadow">
               {initial}
             </div>
           </div>

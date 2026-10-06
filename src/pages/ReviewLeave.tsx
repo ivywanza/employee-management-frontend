@@ -9,7 +9,7 @@ interface LeaveItem {
   start_date: string;
   end_date: string;
   reason: string | null;
-  reviewed: boolean;
+  status: "pending" | "approved" | "rejected";
   submitted_at: string;
 }
 
@@ -18,29 +18,29 @@ export default function ReviewLeave() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-
-
   useEffect(() => {
-  let cancelled = false;
+    let cancelled = false;
 
-  (async () => {
-    const res = await api.get<LeaveItem[]>("/leave-requests/");
-    if (!cancelled) {
-      setItems(res.data);
-      setLoading(false);
-    }
-  })();
+    (async () => {
+      const res = await api.get<LeaveItem[]>("/leave-requests/");
+      if (!cancelled) {
+        setItems(res.data);
+        setLoading(false);
+      }
+    })();
 
-  return () => {
-    cancelled = true;
-  };
-}, []);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const markReviewed = async (id: string) => {
+  const reviewLeave = async (id: string, status: "approved" | "rejected") => {
     setBusyId(id);
     try {
-      await api.patch(`/leave-requests/${id}/review`);
-      setItems((prev) => prev.map((i) => (i.id === id ? { ...i, reviewed: true } : i)));
+      await api.patch(`/leave-requests/${id}/review`, null, {
+        params: { status },
+      });
+      setItems((prev) => prev.map((i) => (i.id === id ? { ...i, status } : i)));
     } finally {
       setBusyId(null);
     }
@@ -78,18 +78,33 @@ export default function ReviewLeave() {
                 )}
               </div>
 
-              {item.reviewed ? (
-                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                  Reviewed
-                </span>
+              {item.status === "pending" ? (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => reviewLeave(item.id, "approved")}
+                    disabled={busyId === item.id}
+                    className="text-xs font-semibold px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:opacity-60 text-white transition"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => reviewLeave(item.id, "rejected")}
+                    disabled={busyId === item.id}
+                    className="text-xs font-semibold px-4 py-2 rounded-lg bg-red-700 hover:bg-red-800 disabled:opacity-60 text-white transition"
+                  >
+                    Reject
+                  </button>
+                </div>
               ) : (
-                <button
-                  onClick={() => markReviewed(item.id)}
-                  disabled={busyId === item.id}
-                  className="text-xs font-semibold px-4 py-2 rounded-lg bg-blue-900 hover:bg-blue-950 disabled:opacity-60 text-white transition"
+                <span
+                  className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                    item.status === "approved"
+                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                      : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+                  }`}
                 >
-                  {busyId === item.id ? "Marking..." : "Mark Reviewed"}
-                </button>
+                  {item.status === "approved" ? "Approved" : "Rejected"}
+                </span>
               )}
             </div>
           ))

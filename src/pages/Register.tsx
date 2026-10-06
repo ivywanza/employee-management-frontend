@@ -75,18 +75,18 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-800 via-emerald-700 to-lime-600 px-4 relative overflow-hidden">
-      <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5"></div>
-      <div className="absolute -bottom-32 -left-20 w-80 h-80 rounded-full bg-white/5"></div>
+    <div className="max-w-xl mx-auto ">
+      <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/15"></div>
+      <div className="absolute -bottom-32 -left-20 w-80 h-80 rounded-full bg-white/15"></div>
 
       <div className="relative w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-emerald-800 to-emerald-700 px-8 py-8 flex items-center gap-4">
-            <div className="h-14 w-14 rounded-lg bg-amber-400 flex items-center justify-center text-emerald-900 font-extrabold text-lg shrink-0 shadow-md">
-              RA
+          <div className="bg-gradient-to-r from-red-700 to-red-700 px-8 py-8 flex items-center gap-4">
+            <div className="h-14 w-14 rounded-lg bg-white flex items-center justify-center text-emerald-900 font-extrabold text-lg shrink-0 shadow-md">
+              <img src="/RedantLogo.webp" alt="RAI" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-amber-300">
+              <h1 className="text-xl font-bold text-white">
                 Add New Employee
               </h1>
               <p className="text-emerald-100 text-sm mt-0.5">
@@ -105,7 +105,7 @@ export default function Register() {
                 required
                 value={form.full_name}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
 
@@ -119,7 +119,7 @@ export default function Register() {
                 required
                 value={form.email}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
 
@@ -133,7 +133,7 @@ export default function Register() {
                 required
                 value={form.password}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
 
@@ -146,7 +146,7 @@ export default function Register() {
                 required
                 value={form.role}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="employee">Employee</option>
                 <option value="admin">Admin</option>
@@ -163,7 +163,7 @@ export default function Register() {
                 required
                 value={form.department_id}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="">Select a department</option>
                 {departments.map((dept) => (
@@ -184,7 +184,7 @@ export default function Register() {
                 required
                 value={form.start_date}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-lg border border-emerald-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
 
@@ -203,7 +203,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-emerald-800 hover:bg-emerald-900 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition"
+              className="w-full bg-red-700 hover:bg-red-800 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition"
             >
               {loading ? "Adding..." : "Add Employee"}
             </button>

@@ -34,8 +34,8 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 via-red-600 to-red-700 px-4 relative overflow-hidden">
-      <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/10"></div>
-      <div className="absolute -bottom-32 -left-20 w-80 h-80 rounded-full bg-red-400/10"></div>
+      <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/15"></div>
+      <div className="absolute -bottom-32 -left-20 w-80 h-80 rounded-full bg-white/15"></div>
 
       <div className="relative w-full max-w-md">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
