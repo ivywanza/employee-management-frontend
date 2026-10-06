@@ -33,15 +33,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-blue-700 px-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 via-red-600 to-red-700 px-4 relative overflow-hidden">
       <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/10"></div>
-      <div className="absolute -bottom-32 -left-20 w-80 h-80 rounded-full bg-red-600/10"></div>
+      <div className="absolute -bottom-32 -left-20 w-80 h-80 rounded-full bg-red-400/10"></div>
 
       <div className="relative w-full max-w-md">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-950 to-blue-800 px-8 py-8 flex items-center gap-4">
+          <div className="bg-gradient-to-r from-red-700 to-red-700 px-8 py-8 flex items-center gap-4">
             <div className="h-14 w-14 rounded-xl bg-white flex items-center justify-center text-red-700 font-extrabold text-lg shrink-0 shadow-md">
-              RA
+              <img src="/RedantLogo.webp" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-white">RedAnt Portal</h1>
@@ -62,7 +62,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your.email@example.com"
-                  className="w-full rounded-xl border border-blue-200 pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                  className="w-full rounded-xl border border-blue-400 pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
                 />
               </div>
             </div>
@@ -100,7 +100,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-900 hover:bg-blue-950 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl shadow-lg transition"
+              className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl shadow-lg transition"
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
