@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/auth";
 
@@ -45,7 +45,9 @@ export default function Login() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-white">RedAnt Portal</h1>
-              <p className="text-blue-100 text-sm mt-0.5">Sign in with your Email and Password</p>
+              <p className="text-blue-100 text-sm mt-0.5">
+                Sign in with your Email and Password
+              </p>
             </div>
           </div>
 
@@ -86,7 +88,11 @@ export default function Login() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -105,7 +111,14 @@ export default function Login() {
               {loading ? "Signing in..." : "Sign In"}
             </button>
 
-            <p className="text-center text-sm text-blue-800 font-medium">Forgot Password?</p>
+            <p className="text-center">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-blue-800 hover:text-red-700 font-medium"
+              >
+                Forgot Password?
+              </Link>
+            </p>
           </form>
         </div>
 

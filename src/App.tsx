@@ -13,6 +13,7 @@ import ManageDocuments from "./pages/ManageDocuments";
 import ReviewOnboarding from "./pages/ReviewOnboarding";
 import EmployeeList from "./pages/EmployeeList";
 import OnboardingDocs from "./pages/OnboardingDocuments";
+import ForgotPassword from "./pages/ForgotPassword";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           <Route
             element={
@@ -29,6 +31,7 @@ export default function App() {
             }
           >
             <Route path="/" element={<Home />} />
+
             <Route path="/leave" element={<Leave />} />
             <Route path="/onboarding" element={<OnboardingDocs />} />
             <Route path="/documents" element={<DocumentHub />} />
