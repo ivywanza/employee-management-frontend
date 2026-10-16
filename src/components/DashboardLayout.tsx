@@ -14,6 +14,7 @@ import {
   Sun,
   Moon,
   type LucideIcon,
+  MessageSquare
 } from "lucide-react";
 import { useAuth } from "../context/auth";
 import { useTheme } from "../lib/theme";
@@ -37,6 +38,7 @@ export default function DashboardLayout() {
     { to: "/onboarding", label: "Onboarding Documents", icon: FileUp },
     { to: "/documents", label: "Document Hub", icon: FolderOpen },
     { to: "/my-submissions", label: "My Submissions", icon: ClipboardList },
+    { to: "/messages", label: "Messages", icon: MessageSquare },
   ];
 
   const adminItems: NavItem[] = [
