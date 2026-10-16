@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { CalendarPlus, Droplet, Sun } from "lucide-react";
+import { CalendarPlus, Sun } from "lucide-react";
 import api from "../lib/api";
 
 const LEAVE_TYPES = [
@@ -80,10 +80,6 @@ export default function Leave() {
   };
 
   const annualPercent = balance ? Math.min(100, (balance.days_used / balance.annual_allowance) * 100) : 0;
-  const menstrualPercent = balance
-    ? Math.min(100, (balance.menstrual_days_used / 2) * 100)
-    : 0;
-
   return (
     <div className="max-w-5xl mx-auto grid gap-6 lg:grid-cols-5">
       <form
