@@ -220,7 +220,7 @@ export default function Home() {
         <section className="grid gap-4 sm:grid-cols-3">
           {stats.employees !== undefined && (
             <StatCard
-              label="Total employees"
+              label="Total associates"
               value={stats.employees}
               icon={Users}
             />
