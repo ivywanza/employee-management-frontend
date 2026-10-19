@@ -16,5 +16,4 @@ api.interceptors.request.use((config) => {
 
 export const WS_URL = `${API_URL.replace(/^http/, "ws")}/ws`; // http becomes ws, https becomes wss
 
-
 export default api;
