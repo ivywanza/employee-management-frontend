@@ -74,7 +74,7 @@ export default function EmployeeList() {
           <Users className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Employee List</h1>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Associate List</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">All accounts on the portal.</p>
         </div>
       </div>

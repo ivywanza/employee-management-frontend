@@ -54,7 +54,7 @@ export default function ReviewLeave() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Review Leave Requests</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Requests submitted by employees.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Requests submitted by associates.</p>
         </div>
       </div>
 

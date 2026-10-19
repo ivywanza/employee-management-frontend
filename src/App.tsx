@@ -42,9 +42,9 @@ export default function App() {
               <Route path="/review-leave" element={<ReviewLeave />} />
               <Route path="/manage-documents" element={<ManageDocuments />} />
               <Route path="/review-onboarding" element={<ReviewOnboarding />} />
-              <Route path="/employees" element={<EmployeeList />} />
+              <Route path="/associates" element={<EmployeeList />} />
               <Route
-                path="/add-employee"
+                path="/add-associate"
                 element={
                   <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
                     <Register />
