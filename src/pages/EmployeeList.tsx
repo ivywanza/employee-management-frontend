@@ -19,6 +19,20 @@ interface Employee {
   is_active: boolean;
 }
 
+function StatusBadge({ active }: { active: boolean }) {
+  return (
+    <span
+      className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${
+        active
+          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+          : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+      }`}
+    >
+      {active ? "Active" : "Inactive"}
+    </span>
+  );
+}
+
 export default function EmployeeList() {
   const { user } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -67,14 +81,31 @@ export default function EmployeeList() {
     }
   };
 
+  const action = (emp: Employee) =>
+    emp.id === user?.id ? (
+      <span className="text-xs text-slate-400">You</span>
+    ) : (
+      <button
+        onClick={() => handleToggleActive(emp)}
+        disabled={busyId === emp.id}
+        className={`text-xs font-semibold disabled:opacity-60 ${
+          emp.is_active ? "text-red-600 hover:text-red-700" : "text-emerald-600 hover:text-emerald-700"
+        }`}
+      >
+        {busyId === emp.id ? "..." : emp.is_active ? "Deactivate" : "Reactivate"}
+      </button>
+    );
+
+  const startDate = (value: string) => new Date(value).toLocaleDateString();
+
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <div className="h-11 w-11 rounded-xl bg-red-100 dark:bg-red-400/20 text-red-700 dark:text-red-300 flex items-center justify-center">
+        <div className="h-11 w-11 rounded-xl bg-red-100 dark:bg-red-400/20 text-red-700 dark:text-red-300 flex items-center justify-center shrink-0">
           <Users className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Associate List</h1>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Employee List</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">All accounts on the portal.</p>
         </div>
       </div>
@@ -85,7 +116,49 @@ export default function EmployeeList() {
         </p>
       )}
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm overflow-hidden">
+      {/* Phones: one card per person */}
+      <div className="md:hidden space-y-3">
+        {loading ? (
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p>
+        ) : employees.length === 0 ? (
+          <p className="text-sm text-slate-500 dark:text-slate-400">No employees yet.</p>
+        ) : (
+          employees.map((emp) => (
+            <div key={emp.id} className="rounded-2xl bg-white dark:bg-slate-900 shadow-sm p-4">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-800 to-red-600 text-white font-bold flex items-center justify-center shrink-0">
+                  {emp.full_name.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{emp.full_name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 break-all">{emp.email}</p>
+                </div>
+                <StatusBadge active={emp.is_active} />
+              </div>
+
+              <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                <div>
+                  <dt className="text-slate-400">Role</dt>
+                  <dd className="font-medium capitalize text-slate-700 dark:text-slate-200">{emp.role}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-400">Department</dt>
+                  <dd className="font-medium text-slate-700 dark:text-slate-200">{departmentName(emp.department_id)}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-400">Started</dt>
+                  <dd className="font-medium text-slate-700 dark:text-slate-200">{startDate(emp.start_date)}</dd>
+                </div>
+              </dl>
+
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-right">{action(emp)}</div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Tablets and desktop: table */}
+      <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
@@ -118,35 +191,11 @@ export default function EmployeeList() {
                   <td className="px-6 py-3">{emp.email}</td>
                   <td className="px-6 py-3 capitalize">{emp.role}</td>
                   <td className="px-6 py-3">{departmentName(emp.department_id)}</td>
-                  <td className="px-6 py-3">{new Date(emp.start_date).toLocaleDateString()}</td>
+                  <td className="px-6 py-3">{startDate(emp.start_date)}</td>
                   <td className="px-6 py-3">
-                    <span
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                        emp.is_active
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
-                          : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                      }`}
-                    >
-                      {emp.is_active ? "Active" : "Inactive"}
-                    </span>
+                    <StatusBadge active={emp.is_active} />
                   </td>
-                  <td className="px-6 py-3 text-right">
-                    {emp.id === user?.id ? (
-                      <span className="text-xs text-slate-400">You</span>
-                    ) : (
-                      <button
-                        onClick={() => handleToggleActive(emp)}
-                        disabled={busyId === emp.id}
-                        className={`inline-flex items-center gap-1.5 text-xs font-semibold disabled:opacity-60 ${
-                          emp.is_active
-                            ? "text-red-600 hover:text-red-700"
-                            : "text-emerald-600 hover:text-emerald-700"
-                        }`}
-                      >
-                        {busyId === emp.id ? "..." : emp.is_active ? "Deactivate" : "Reactivate"}
-                      </button>
-                    )}
-                  </td>
+                  <td className="px-6 py-3 text-right">{action(emp)}</td>
                 </tr>
               ))
             )}

@@ -87,7 +87,7 @@ export default function Register() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-white">
-                Add New Employee
+                Add New Associate
               </h1>
               <p className="text-emerald-100 text-sm mt-0.5">
                 Superadmin access only

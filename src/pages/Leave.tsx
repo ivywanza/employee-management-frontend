@@ -34,17 +34,25 @@ export default function Leave() {
     emergency_contact_phone: "",
   });
   const [balance, setBalance] = useState<Balance | null>(null);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const loadBalance = () => api.get<Balance>("/leave-requests/balance").then((res) => setBalance(res.data));
+  const loadBalance = () =>
+    api
+      .get<Balance>("/leave-requests/balance")
+      .then((res) => setBalance(res.data));
 
   useEffect(() => {
     loadBalance();
   }, []);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -54,14 +62,20 @@ export default function Leave() {
     setMessage(null);
 
     if (form.end_date < form.start_date) {
-      setMessage({ type: "error", text: "End date can't be before the start date." });
+      setMessage({
+        type: "error",
+        text: "End date can't be before the start date.",
+      });
       return;
     }
 
     setLoading(true);
     try {
       await api.post("/leave-requests/", form);
-      setMessage({ type: "success", text: "Your leave request has been submitted." });
+      setMessage({
+        type: "success",
+        text: "Your leave request has been submitted.",
+      });
       setForm({
         leave_type: "sick",
         start_date: "",
@@ -72,14 +86,34 @@ export default function Leave() {
       });
       loadBalance();
     } catch (err: unknown) {
-      const detail = axios.isAxiosError(err) ? err.response?.data?.detail : undefined;
-      setMessage({ type: "error", text: typeof detail === "string" ? detail : "Failed to submit leave request." });
+      const detail = axios.isAxiosError(err)
+        ? err.response?.data?.detail
+        : undefined;
+      setMessage({
+        type: "error",
+        text:
+          typeof detail === "string"
+            ? detail
+            : "Failed to submit leave request.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const annualPercent = balance ? Math.min(100, (balance.days_used / balance.annual_allowance) * 100) : 0;
+  const annualPercent = balance
+    ? Math.min(100, (balance.days_used / balance.annual_allowance) * 100)
+    : 0;
+
+  const requestedDays =
+    form.start_date && form.end_date && form.end_date >= form.start_date
+      ? Math.round(
+          (new Date(form.end_date).getTime() -
+            new Date(form.start_date).getTime()) /
+            86400000,
+        ) + 1
+      : 0;
+
   return (
     <div className="max-w-5xl mx-auto grid gap-6 lg:grid-cols-5">
       <form
@@ -91,8 +125,12 @@ export default function Leave() {
             <CalendarPlus className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Apply for Leave</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Submit a request for HR to review.</p>
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+              Apply for Leave
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Submit a request for HR to review.
+            </p>
           </div>
         </div>
 
@@ -145,6 +183,13 @@ export default function Leave() {
             />
           </div>
         </div>
+        {requestedDays > 0 && (
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            You are requesting{" "}
+            <span className="font-semibold">{requestedDays}</span> day
+            {requestedDays === 1 ? "" : "s"} of leave.
+          </p>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -209,19 +254,27 @@ export default function Leave() {
       </form>
 
       <div className="lg:col-span-2 space-y-4 my-10">
-        <div className="bg-gradient-to-br from-green-700 to-green-600 text-white rounded-2xl p-6 shadow-sm">
+        <div className="bg-gradient-to-br from-emerald-700 to-green-600 text-white rounded-2xl p-6 shadow-sm">
           <div className="flex items-center gap-2 text-blue-200 text-xs uppercase tracking-wide">
             <Sun className="h-3.5 w-3.5" />
             Annual Leave {balance?.year ?? ""}
           </div>
           <p className="text-4xl font-extrabold mt-2">
             {balance ? balance.days_remaining : "--"}
-            <span className="text-base font-medium text-blue-200"> / {balance?.annual_allowance ?? 22} days left</span>
+            <span className="text-base font-medium text-blue-200">
+              {" "}
+              / {balance?.annual_allowance ?? 22} days left
+            </span>
           </p>
           <div className="mt-4 h-2 rounded-full bg-white/15 overflow-hidden">
-            <div className="h-full bg-red-500 rounded-full transition-all" style={{ width: `${annualPercent}%` }} />
+            <div
+              className="h-full bg-red-500 rounded-full transition-all"
+              style={{ width: `${annualPercent}%` }}
+            />
           </div>
-          <p className="text-xs text-blue-200 mt-2">{balance?.days_used ?? 0} days used this year</p>
+          <p className="text-xs text-blue-200 mt-2">
+            {balance?.days_used ?? 0} days used this year
+          </p>
         </div>
 
         {/* <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm">

@@ -193,9 +193,9 @@ export default function Home() {
           <h1 className="text-3xl font-bold mt-1">
             {greeting}, {profile.full_name.split(" ")[0]}
           </h1>
-          <p className="text-emerald-100 mt-1 text-sm">
-            {profile.department_name ?? "No department yet"} ·{" "}
-            <span className="capitalize">{profile.role}</span>
+          <p className="text-emerald-100 mt-2 text-sm">
+            <span>DEPARTMENT : </span>
+            {profile.department_name ?? "No department yet"} {" "}
           </p>
         </div>
         <div className="rounded-2xl bg-white/15 backdrop-blur px-6 py-4 text-center">

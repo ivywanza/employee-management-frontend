@@ -5,6 +5,8 @@ export type Role = "superadmin" | "admin" | "employee";
 export interface AuthUser {
   id: string;
   role: Role;
+  full_name: string;
+  department: string;
 }
 
 export interface Profile {

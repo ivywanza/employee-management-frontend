@@ -41,7 +41,7 @@ export default function Login() {
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
           <div className="bg-gradient-to-r from-red-700 to-red-700 px-8 py-8 flex items-center gap-4">
             <div className="h-14 w-14 rounded-xl bg-white flex items-center justify-center text-red-700 font-extrabold text-lg shrink-0 shadow-md">
-              <img src="/RedantLogo.webp" />
+              <img src="/RedantLogo.webp" alt="Redant International"/>
             </div>
             <div>
               <h1 className="text-xl font-bold text-white">RedAnt Portal</h1>
