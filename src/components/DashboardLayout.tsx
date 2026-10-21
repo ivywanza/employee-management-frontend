@@ -64,8 +64,8 @@ export default function DashboardLayout() {
   ];
 
   const adminItems: NavItem[] = [
-    { to: "/add-employee", label: "Add Employee", icon: UserPlus },
-    { to: "/employees", label: "Employee List", icon: Users },
+    { to: "/add-associates", label: "Add Associate", icon: UserPlus },
+    { to: "/associates", label: "Associates list List", icon: Users },
     { to: "/manage-documents", label: "Manage Documents", icon: Folders },
   ];
 

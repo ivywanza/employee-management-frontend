@@ -8,7 +8,7 @@ interface LeaveItem {
   leave_type: string;
   start_date: string;
   end_date: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "under-review";
   submitted_at: string;
 }
 
