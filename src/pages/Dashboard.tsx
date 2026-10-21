@@ -35,7 +35,8 @@ export default function DashboardLayout() {
     { to: "/", label: "Home", icon: LayoutDashboard },
     { to: "/leave", label: "Apply for Leave", icon: CalendarPlus },
     { to: "/messages", label: "Messages", icon: MessageSquare },
-    { to: "/my-submissions", label: "Onboarding Documents", icon: FileUp },
+    { to: "/onboarding", label: "Onboarding Documents", icon: FileUp },
+    { to: "/my-submissions", label: "My Submissions", icon: FileUp },
     { to: "/documents", label: "Document Hub", icon: FolderOpen },
   ];
 

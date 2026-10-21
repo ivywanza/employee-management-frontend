@@ -59,7 +59,8 @@ export default function DashboardLayout() {
     { to: "/messages", label: "Messages", icon: MessageSquare },
     { to: "/leave", label: "Apply for Leave", icon: CalendarPlus },
     { to: "/documents", label: "Document Hub", icon: FolderOpen },
-    { to: "/my-submissions", label: "Onboarding Documents", icon: FileUp },
+    { to: "/onboarding", label: "Onboarding Documents", icon: FileUp },
+    { to: "/my-submissions", label: "My Submissions", icon: FileUp },
   ];
 
   const adminItems: NavItem[] = [
