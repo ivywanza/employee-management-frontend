@@ -40,6 +40,7 @@ export default function EmployeeList() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -59,23 +60,73 @@ export default function EmployeeList() {
     };
   }, []);
 
-  const departmentName = (id: string | null) => departments.find((d) => d.id === id)?.name ?? "—";
+  const departmentName = (id: string | null) =>
+    departments.find((d) => d.id === id)?.name ?? "—";
 
   const handleToggleActive = async (employee: Employee) => {
     const nextStatus = !employee.is_active;
     const verb = nextStatus ? "reactivate" : "deactivate";
-    if (!confirm(`Are you sure you want to ${verb} ${employee.full_name}?`)) return;
+    if (!confirm(`Are you sure you want to ${verb} ${employee.full_name}?`))
+      return;
 
     setBusyId(employee.id);
     setError("");
     try {
-      const res = await api.patch<Employee>(`/users/${employee.id}/status`, null, {
-        params: { is_active: nextStatus },
-      });
-      setEmployees((prev) => prev.map((e) => (e.id === employee.id ? res.data : e)));
+      const res = await api.patch<Employee>(
+        `/users/${employee.id}/status`,
+        null,
+        {
+          params: { is_active: nextStatus },
+        },
+      );
+      setEmployees((prev) =>
+        prev.map((e) => (e.id === employee.id ? res.data : e)),
+      );
     } catch (err: unknown) {
-      const detail = axios.isAxiosError(err) ? err.response?.data?.detail : undefined;
-      setError(typeof detail === "string" ? detail : "Failed to update employee status.");
+      const detail = axios.isAxiosError(err)
+        ? err.response?.data?.detail
+        : undefined;
+      setError(
+        typeof detail === "string"
+          ? detail
+          : "Failed to update employee status.",
+      );
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleResend = async (employee: Employee) => {
+    if (
+      !confirm(
+        `Email ${employee.full_name} a new temporary password? Their current password will stop working.`,
+      )
+    )
+      return;
+
+    setBusyId(employee.id);
+    setError("");
+    setNotice("");
+    try {
+      const res = await api.post<{ email_sent: boolean }>(
+        `/users/${employee.id}/resend-welcome`,
+      );
+      if (res.data.email_sent) {
+        setNotice(`A new welcome email was sent to ${employee.email}.`);
+      } else {
+        setError(
+          "The password was reset, but the email could not be sent. Check the email settings on the server and try again.",
+        );
+      }
+    } catch (err: unknown) {
+      const detail = axios.isAxiosError(err)
+        ? err.response?.data?.detail
+        : undefined;
+      setError(
+        typeof detail === "string"
+          ? detail
+          : "Could not resend the welcome email.",
+      );
     } finally {
       setBusyId(null);
     }
@@ -85,15 +136,30 @@ export default function EmployeeList() {
     emp.id === user?.id ? (
       <span className="text-xs text-slate-400">You</span>
     ) : (
-      <button
-        onClick={() => handleToggleActive(emp)}
-        disabled={busyId === emp.id}
-        className={`text-xs font-semibold disabled:opacity-60 ${
-          emp.is_active ? "text-red-600 hover:text-red-700" : "text-emerald-600 hover:text-emerald-700"
-        }`}
-      >
-        {busyId === emp.id ? "..." : emp.is_active ? "Deactivate" : "Reactivate"}
-      </button>
+      <div className="flex items-center justify-end gap-4">
+        <button
+          onClick={() => handleResend(emp)}
+          disabled={busyId === emp.id}
+          className="text-xs font-semibold text-blue-800 dark:text-blue-300 hover:underline disabled:opacity-60"
+        >
+          Resend welcome email
+        </button>
+        <button
+          onClick={() => handleToggleActive(emp)}
+          disabled={busyId === emp.id}
+          className={`text-xs font-semibold disabled:opacity-60 ${
+            emp.is_active
+              ? "text-red-600 hover:text-red-700"
+              : "text-emerald-600 hover:text-emerald-700"
+          }`}
+        >
+          {busyId === emp.id
+            ? "..."
+            : emp.is_active
+              ? "Deactivate"
+              : "Reactivate"}
+        </button>
+      </div>
     );
 
   const startDate = (value: string) => new Date(value).toLocaleDateString();
@@ -105,8 +171,12 @@ export default function EmployeeList() {
           <Users className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Employee List</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">All accounts on the portal.</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+            Employee List
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            All accounts on the portal.
+          </p>
         </div>
       </div>
 
@@ -115,23 +185,39 @@ export default function EmployeeList() {
           {error}
         </p>
       )}
+      {notice && (
+        <p className="mb-4 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800">
+          {notice}
+        </p>
+      )}
 
       {/* Phones: one card per person */}
       <div className="md:hidden space-y-3">
         {loading ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Loading...
+          </p>
         ) : employees.length === 0 ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">No employees yet.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            No employees yet.
+          </p>
         ) : (
           employees.map((emp) => (
-            <div key={emp.id} className="rounded-2xl bg-white dark:bg-slate-900 shadow-sm p-4">
+            <div
+              key={emp.id}
+              className="rounded-2xl bg-white dark:bg-slate-900 shadow-sm p-4"
+            >
               <div className="flex items-start gap-3">
                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-800 to-red-600 text-white font-bold flex items-center justify-center shrink-0">
                   {emp.full_name.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{emp.full_name}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 break-all">{emp.email}</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">
+                    {emp.full_name}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 break-all">
+                    {emp.email}
+                  </p>
                 </div>
                 <StatusBadge active={emp.is_active} />
               </div>
@@ -139,19 +225,27 @@ export default function EmployeeList() {
               <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
                 <div>
                   <dt className="text-slate-400">Role</dt>
-                  <dd className="font-medium capitalize text-slate-700 dark:text-slate-200">{emp.role}</dd>
+                  <dd className="font-medium capitalize text-slate-700 dark:text-slate-200">
+                    {emp.role}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-slate-400">Department</dt>
-                  <dd className="font-medium text-slate-700 dark:text-slate-200">{departmentName(emp.department_id)}</dd>
+                  <dd className="font-medium text-slate-700 dark:text-slate-200">
+                    {departmentName(emp.department_id)}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-slate-400">Started</dt>
-                  <dd className="font-medium text-slate-700 dark:text-slate-200">{startDate(emp.start_date)}</dd>
+                  <dd className="font-medium text-slate-700 dark:text-slate-200">
+                    {startDate(emp.start_date)}
+                  </dd>
                 </div>
               </dl>
 
-              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-right">{action(emp)}</div>
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-right">
+                {action(emp)}
+              </div>
             </div>
           ))
         )}
@@ -174,23 +268,33 @@ export default function EmployeeList() {
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-6 py-6 text-slate-500 dark:text-slate-400">
+                <td
+                  colSpan={7}
+                  className="px-6 py-6 text-slate-500 dark:text-slate-400"
+                >
                   Loading...
                 </td>
               </tr>
             ) : employees.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-6 text-slate-500 dark:text-slate-400">
+                <td
+                  colSpan={7}
+                  className="px-6 py-6 text-slate-500 dark:text-slate-400"
+                >
                   No employees yet.
                 </td>
               </tr>
             ) : (
               employees.map((emp) => (
                 <tr key={emp.id} className="text-slate-700 dark:text-slate-300">
-                  <td className="px-6 py-3 font-medium text-slate-800 dark:text-slate-100">{emp.full_name}</td>
+                  <td className="px-6 py-3 font-medium text-slate-800 dark:text-slate-100">
+                    {emp.full_name}
+                  </td>
                   <td className="px-6 py-3">{emp.email}</td>
                   <td className="px-6 py-3 capitalize">{emp.role}</td>
-                  <td className="px-6 py-3">{departmentName(emp.department_id)}</td>
+                  <td className="px-6 py-3">
+                    {departmentName(emp.department_id)}
+                  </td>
                   <td className="px-6 py-3">{startDate(emp.start_date)}</td>
                   <td className="px-6 py-3">
                     <StatusBadge active={emp.is_active} />

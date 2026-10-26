@@ -5,8 +5,6 @@ export type Role = "superadmin" | "admin" | "employee";
 export interface AuthUser {
   id: string;
   role: Role;
-  full_name?: string;
-  department?: string;
 }
 
 export interface Profile {
@@ -17,6 +15,10 @@ export interface Profile {
   start_date: string;
   department_name: string | null;
   isHr: boolean;
+  must_change_password: boolean;
+  welcome_shown: boolean;
+  needs_wizard: boolean;
+  missing_documents: string[];
 }
 
 export interface AuthContextType {
@@ -24,6 +26,9 @@ export interface AuthContextType {
   profile: Profile | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  refreshProfile: () => Promise<void>;
+  wizardSkipped: boolean;
+  skipWizard: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);

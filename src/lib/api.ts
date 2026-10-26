@@ -1,6 +1,10 @@
 import axios from "axios";
 
-export const API_URL = (import.meta.env.ASSOCIATE_API_URL as string | undefined) ?? "https://employee-management-api-8m8b.onrender.com";
+export const API_URL = (import.meta.env.ASSOCIATE_API_URL as string | undefined) ??
+"http://127.0.0.1:8000"
+ 
+// "https://employee-management-api-8m8b.onrender.com"
+;
 
 const api = axios.create({
   baseURL: API_URL,

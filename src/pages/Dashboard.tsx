@@ -74,8 +74,8 @@ export default function DashboardLayout() {
     <div className="min-h-screen flex bg-slate-100 dark:bg-slate-950">
       <aside className="w-64 shrink-0 bg-gradient-to-b from-blue-950 to-blue-900 text-white flex flex-col">
         <div className="flex items-center gap-3 px-5 py-6 border-b border-white/10">
-          <div className="h-10 w-10 rounded-xl bg-red-600 flex items-center justify-center text-white font-extrabold shadow">
-            RA
+          <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-white font-extrabold shadow">
+            <img src="/RedantLogo.webp" />
           </div>
           <span className="font-bold text-white">RedAnt Portal</span>
         </div>
