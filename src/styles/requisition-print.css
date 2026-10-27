@@ -1,0 +1,188 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
+
+/* ---------- The sheet: A4, two identical copies split by a cut line ---------- */
+.req-sheet {
+  width: 210mm;
+  height: 296mm;
+  padding: 8mm 14mm;
+  box-sizing: border-box;
+  background: #fff;
+  color: #1a1a1a;
+  font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
+  font-size: 9pt;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.req-copy {
+  height: 134mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Title + logo */
+.req-head {
+  position: relative;
+  height: 16mm;
+}
+.req-title {
+  margin: 0;
+  padding-top: 4mm;
+  text-align: center;
+  color: #d62828;
+  font-weight: 800;
+  font-size: 19pt;
+  letter-spacing: 0.2px;
+}
+.req-logo {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 14mm;
+  width: auto;
+}
+.req-logo-fallback {
+  position: absolute;
+  right: 0;
+  top: 0;
+  text-align: right;
+  color: #d62828;
+  line-height: 1;
+}
+.req-logo-fallback strong {
+  display: block;
+  font-size: 24pt;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+.req-logo-fallback span {
+  font-size: 5.5pt;
+  font-weight: 600;
+}
+
+/* Section headings: centred, bold */
+.req-section {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+  font-size: 10.5pt;
+}
+
+/* Rows of label + underline */
+.req-row {
+  display: flex;
+  gap: 10mm;
+  align-items: flex-end;
+}
+.req-field {
+  display: flex;
+  align-items: flex-end;
+  gap: 2mm;
+  min-width: 0;
+}
+.req-label {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.req-line {
+  flex: 1;
+  min-width: 0;
+  min-height: 5.5mm;
+  padding: 0 1.5mm;
+  border-bottom: 0.3mm solid #222;
+  font-weight: 500;
+  line-height: 5mm;
+  overflow-wrap: anywhere;
+}
+
+/* Purpose: two ruled lines that grow if the text wraps */
+.req-purpose {
+  display: flex;
+  align-items: flex-start;
+  gap: 2mm;
+}
+.req-purpose .req-label {
+  line-height: 6mm;
+}
+.req-ruled {
+  flex: 1;
+  min-height: 12mm;
+  padding: 0 1.5mm;
+  font-weight: 500;
+  line-height: 6mm;
+  background-image: linear-gradient(to bottom, transparent calc(6mm - 0.3mm), #222 calc(6mm - 0.3mm));
+  background-size: 100% 6mm;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  overflow-wrap: anywhere;
+}
+
+/* Approval / authorisation block */
+.req-approval {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10mm;
+}
+.req-approval-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5mm;
+}
+.req-bullet {
+  display: flex;
+  gap: 2.5mm;
+  font-weight: 400;
+  line-height: 1.35;
+}
+.req-bullet::before {
+  content: "•";
+}
+
+/* Scissors cut line */
+.req-cut {
+  height: 8mm;
+  display: flex;
+  align-items: center;
+  gap: 1mm;
+  font-size: 13pt;
+  line-height: 1;
+}
+.req-cut::after {
+  content: "";
+  flex: 1;
+  border-top: 0.5mm dotted #222;
+}
+
+/* ---------- Print mechanics ---------- */
+#print-root {
+  display: none;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  /* Hide the whole app, show only the portal'd sheet */
+  body > *:not(#print-root) {
+    display: none !important;
+  }
+  #print-root {
+    display: block;
+  }
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+  #print-root .req-sheet {
+    box-shadow: none !important;
+    zoom: 1 !important;
+  }
+}

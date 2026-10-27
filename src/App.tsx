@@ -19,6 +19,10 @@ import ReviewOnboarding from "./pages/ReviewOnboarding";
 import EmployeeList from "./pages/EmployeeList";
 import Messages from "./pages/Message";
 import OnboardingDocs from "./pages/OnboardingDocuments";
+import SubmitGrievance from "./pages/grievances/SubmitGrievance";
+import { GrievancesView, GrievancesManage } from "./pages/grievances/GrievanceBoard";
+import RequisitionForm from "./pages/requisitions/RequisitionForm";
+import RequisitionsAdmin from "./pages/requisitions/RequisitionsAdmin";
 
 
 export default function App() {
@@ -49,8 +53,28 @@ export default function App() {
                 <Route path="/my-submissions" element={<MySubmissions />} />
                 <Route path="/review-leave" element={<ReviewLeave />} />
                 <Route path="/manage-documents" element={<ManageDocuments />} />
-                <Route path="/review-onboarding" element={<ReviewOnboarding />} />
+                <Route
+                  path="/review-onboarding"
+                  element={<ReviewOnboarding />}
+                />
                 <Route path="/associates" element={<EmployeeList />} />
+                <Route
+                  path="/grievances/submit"
+                  element={<SubmitGrievance />}
+                />
+                <Route path="/grievances/view" element={<GrievancesView />} />{" "}
+                {/* managers only */}
+                <Route
+                  path="/grievances/manage"
+                  element={<GrievancesManage />}
+                />{" "}
+                {/* managers only */}
+                <Route path="/requisitions" element={<RequisitionForm />} />
+                <Route
+                  path="/requisitions/manage"
+                  element={<RequisitionsAdmin />}
+                />{" "}
+                {/* admin + superadmin */}
                 <Route
                   path="/add-associate"
                   element={

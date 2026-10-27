@@ -52,7 +52,7 @@ export default function DashboardLayout() {
   ];
 
   const renderLinks = (items: NavItem[]) =>
-    items.map(({ to, label, icon: Icon }) => (
+    items.map(({ to, label }) => (
       <NavLink
         key={to}
         to={to}
@@ -63,7 +63,7 @@ export default function DashboardLayout() {
           }`
         }
       >
-        <Icon className="h-4 w-4" />
+        {/* <Icon className="h-4 w-4" /> */}
         {label}
       </NavLink>
     ));

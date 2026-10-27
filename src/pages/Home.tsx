@@ -187,7 +187,7 @@ export default function Home() {
 
   return (
     <div className="max-w-5xl space-y-8">
-      <section className="rounded-3xl bg-gradient-to-r from-red-700 via-red-800 to-blue-800 p-8 text-white shadow-lg flex flex-wrap items-center justify-between gap-6">
+      <section className="rounded-3xl bg-red-700 p-8 text-white shadow-lg flex flex-wrap items-center justify-between gap-6">
         <div>
           <p className="text-sm text-emerald-100">{today}</p>
           <h1 className="text-3xl font-bold mt-1">

@@ -12,10 +12,21 @@ export interface ChatMessage {
   read_at: string | null;
 }
 
-export interface LiveEvent {
-  type: "broadcast" | "direct" | "room";
-  message: ChatMessage;
+
+export interface LiveNotification {
+  type: "notification";
+  title: string;
+  message: string;
+  target?: string;
 }
+
+export type LiveEvent =
+  | {
+      type: "broadcast" | "direct" | "room";
+      message: ChatMessage;
+    }
+  | LiveNotification;
+
 
 export type LiveStatus = "connecting" | "open" | "closed";
 export type LiveHandler = (event: LiveEvent) => void;
