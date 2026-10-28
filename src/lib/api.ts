@@ -1,8 +1,7 @@
 import axios from "axios";
 
-export const API_URL = (import.meta.env.ASSOCIATE_API_URL as string | undefined) ??
-"http://127.0.0.1:8000"
- 
+export const API_URL =
+  (import.meta.env.VITE_ASSOCIATE_API_URL as string | undefined) ?? "/api"
 // "https://employee-management-api-8m8b.onrender.com"
 ;
 
@@ -18,6 +17,5 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export const WS_URL = `${API_URL.replace(/^http/, "ws")}/ws`; // http becomes ws, https becomes wss
-
+export const WS_URL = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws`;
 export default api;

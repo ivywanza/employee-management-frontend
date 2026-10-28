@@ -200,21 +200,44 @@ export default function Messages() {
   }, [loadPeople]);
 
   // Live updates
+  
+  // Live updates
   useEffect(() => {
     return subscribe((event) => {
+      // Notifications are handled by the notification UI, not the messages page.
+      if (event.type === "notification") return;
+
       const m = event.message;
+
       if (event.type === "broadcast") {
-        setBroadcasts((prev) => (prev.some((b) => b.id === m.id) ? prev : [m, ...prev]));
-        if (view.kind !== "announcements" && m.sender_id !== user?.id) setNewBroadcasts((n) => n + 1);
+        setBroadcasts((prev) =>
+          prev.some((b) => b.id === m.id) ? prev : [m, ...prev]
+        );
+
+        if (view.kind !== "announcements" && m.sender_id !== user?.id) {
+          setNewBroadcasts((n) => n + 1);
+        }
         return;
       }
+
       if (event.type === "room") {
-        setRoomMessages((prev) => (prev.some((r) => r.id === m.id) ? prev : [...prev, m]));
-        if (view.kind !== "room" && m.sender_id !== user?.id) setNewRoom((n) => n + 1);
+        setRoomMessages((prev) =>
+          prev.some((r) => r.id === m.id) ? prev : [...prev, m]
+        );
+
+        if (view.kind !== "room" && m.sender_id !== user?.id) {
+          setNewRoom((n) => n + 1);
+        }
         return;
       }
+
+      // The remaining event is a direct message.
       loadConversations().catch(() => undefined);
-      if (view.kind === "chat" && (m.sender_id === view.userId || m.recipient_id === view.userId)) {
+
+      if (
+        view.kind === "chat" &&
+        (m.sender_id === view.userId || m.recipient_id === view.userId)
+      ) {
         loadThread(view.userId).catch(() => undefined);
       }
     });
