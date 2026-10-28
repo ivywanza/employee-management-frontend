@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useLive, type LiveEvent } from "../context/live";
@@ -22,7 +23,6 @@ import {
   MessageSquareWarning,
   Package,
   ShoppingCart,
-  ListTodo,
   Bell,
   type LucideIcon,
 } from "lucide-react";
@@ -70,12 +70,18 @@ export default function DashboardLayout() {
   const { user, profile, logout } = useAuth();
   const { theme, toggle } = useTheme();
   const { pathname } = useLocation();
+  const { subscribe } = useLive();
 
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem(COLLAPSE_KEY) === "1",
   );
   const [moreOpen, setMoreOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
+  const [liveNotice, setLiveNotice] = useState<{
+    title: string;
+    message: string;
+    target?: string;
+  } | null>(null);
 
   const role = user?.role as Role | undefined;
   const isAdmin = role === "admin" || role === "superadmin";
@@ -83,7 +89,7 @@ export default function DashboardLayout() {
 
   const everyone: NavItem[] = [
     { to: "/", label: "Home", icon: LayoutDashboard },
-    { to: "/messages", label: "Messages", icon: MessageSquare },
+    // { to: "/messages", label: "Messages", icon: MessageSquare },
     { to: "/leave", label: "Apply for Leave", icon: CalendarDays },
     { to: "/documents", label: "Document Hub", icon: FolderOpen },
     { to: "/onboarding", label: "Onboarding Documents", icon: FileText },
@@ -106,7 +112,6 @@ export default function DashboardLayout() {
     },
   ];
 
-  // New dropdown groups. Change roles here to match your final access rules.
   const groups: NavGroup[] = [
     {
       label: "Departments",
@@ -119,10 +124,8 @@ export default function DashboardLayout() {
           icon: Building2,
           roles: ADMIN_ROLES,
         },
-        
       ],
     },
-
     {
       label: "Grievances",
       icon: MessageSquareWarning,
@@ -141,7 +144,6 @@ export default function DashboardLayout() {
         },
       ],
     },
-
     {
       label: "Assets",
       icon: Package,
@@ -154,7 +156,6 @@ export default function DashboardLayout() {
         },
       ],
     },
-
     {
       label: "Requisitions",
       icon: ShoppingCart,
@@ -177,50 +178,10 @@ export default function DashboardLayout() {
           icon: FolderOpen,
           roles: REVIEW_ROLES,
         },
-        {
-          to: "/requisitions/review",
-          label: "Review Requisitions",
-          icon: ClipboardCheck,
-          roles: REVIEW_ROLES,
-        },
-        {
-          to: "/requisitions/manage",
-          label: "Manage Requisitions",
-          icon: Users,
-          roles: MANAGEMENT_ROLES,
-        },
+        // Add Review Requisitions and Manage Requisitions here
+        // after their dedicated routes and permissions are ready.
       ],
     },
-    // {
-    //   label: "Tasks & Timesheets",
-    //   icon: ListTodo,
-    //   items: [
-    //     {
-    //       to: "/tasks/mine",
-    //       label: "My Tasks",
-    //       icon: ListTodo,
-    //       roles: ALL_ROLES,
-    //     },
-    //     {
-    //       to: "/timesheets/mine",
-    //       label: "My Timesheets",
-    //       icon: CalendarDays,
-    //       roles: ALL_ROLES,
-    //     },
-    //     {
-    //       to: "/tasks",
-    //       label: "Manage Tasks",
-    //       icon: ClipboardCheck,
-    //       roles: REVIEW_ROLES,
-    //     },
-    //     {
-    //       to: "/timesheets/review",
-    //       label: "Review Timesheets",
-    //       icon: ClipboardCheck,
-    //       roles: REVIEW_ROLES,
-    //     },
-    //   ],
-    // },
   ];
 
   const toggleCollapsed = () => {
@@ -236,14 +197,6 @@ export default function DashboardLayout() {
         : [...current, label],
     );
   };
-
-  const { subscribe } = useLive();
-
-  const [liveNotice, setLiveNotice] = useState<{
-    title: string;
-    message: string;
-    target?: string;
-  } | null>(null);
 
   useEffect(() => {
     return subscribe((event: LiveEvent) => {
@@ -271,14 +224,14 @@ export default function DashboardLayout() {
         (!group.roles || (role && group.roles.includes(role))),
     );
 
+  // Exact matching prevents parent and child routes being active together.
   const isPathActive = (to: string) =>
-    to === "/" ? pathname === "/" : pathname.startsWith(to);
+    to === "/" ? pathname === "/" : pathname === to;
 
   const groupIsActive = (group: NavGroup) =>
     group.items.some((item) => isPathActive(item.to));
 
   const initial = profile?.full_name?.charAt(0).toUpperCase() ?? "?";
-
   const moreActive = !tabs.some((tab) => isPathActive(tab.to));
 
   const sidebarLinks = (items: NavItem[]) =>
@@ -286,19 +239,19 @@ export default function DashboardLayout() {
       <NavLink
         key={to}
         to={to}
-        end={to === "/"}
+        end
         title={collapsed ? label : undefined}
         className={({ isActive }) =>
-          `flex items-center gap-3 rounded-xl text-sm font-medium transition ${
+          `flex items-center gap-3 rounded-xl text-base font-medium transition ${
             collapsed ? "justify-center py-3" : "px-4 py-2.5"
           } ${
             isActive
-              ? "bg-white text-emerald-950 shadow border-2 border-blue-800"
-              : "text-blue-100/90 hover:bg-white/10"
+              ? "bg-red-800 text-white"
+              : "text-white hover:bg-white/10"
           }`
         }
       >
-        {Icon && <Icon className="h-4 w-4 shrink-0" />}
+        {Icon && <Icon className="h-5 w-5 shrink-0" />}
         {!collapsed && <span className="truncate">{label}</span>}
       </NavLink>
     ));
@@ -306,7 +259,7 @@ export default function DashboardLayout() {
   const sidebarGroups = (items: NavGroup[]) =>
     items.map((group) => {
       const Icon = group.icon;
-      const open = expandedGroups.includes(group.label) || groupIsActive(group);
+      const open = expandedGroups.includes(group.label);
 
       return (
         <div key={group.label} className="space-y-1">
@@ -315,8 +268,8 @@ export default function DashboardLayout() {
             title={collapsed ? group.label : undefined}
             onClick={() => {
               if (collapsed) {
-                setCollapsed(false);
                 localStorage.setItem(COLLAPSE_KEY, "0");
+                setCollapsed(false);
                 setExpandedGroups((current) =>
                   current.includes(group.label)
                     ? current
@@ -327,14 +280,16 @@ export default function DashboardLayout() {
               }
             }}
             aria-expanded={open}
-            className={`w-full flex items-center gap-3 rounded-xl text-sm font-medium text-blue-100/90 hover:bg-white/10 transition ${
+            className={`w-full flex items-center gap-3 rounded-xl text-base font-medium text-white hover:bg-white/10 transition ${
               collapsed ? "justify-center py-3" : "px-4 py-2.5"
-            } ${groupIsActive(group) ? "bg-white/10 text-white" : ""}`}
+            } ${groupIsActive(group) ? "bg-white/10" : ""}`}
           >
-            <Icon className="h-4 w-4 shrink-0" />
+            <Icon className="h-5 w-5 shrink-0" />
             {!collapsed && (
               <>
-                <span className="flex-1 text-left truncate">{group.label}</span>
+                <span className="flex-1 text-left truncate">
+                  {group.label}
+                </span>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform ${
                     open ? "rotate-180" : ""
@@ -350,16 +305,18 @@ export default function DashboardLayout() {
                 <NavLink
                   key={to}
                   to={to}
-                  onClick={() => setMoreOpen(false)}
+                  end
                   className={({ isActive }) =>
-                    `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
+                    `flex items-center gap-2 rounded-lg px-3 py-2.5 text-base font-medium transition ${
                       isActive
-                        ? "bg-white text-emerald-950 shadow"
-                        : "text-blue-100/90 hover:bg-white/10"
+                        ? "bg-red-800 text-white"
+                        : "text-white hover:bg-white/10"
                     }`
                   }
                 >
-                  {ItemIcon && <ItemIcon className="h-4 w-4 shrink-0" />}
+                  {ItemIcon && (
+                    <ItemIcon className="h-5 w-5 shrink-0" />
+                  )}
                   <span className="truncate">{label}</span>
                 </NavLink>
               ))}
@@ -373,7 +330,7 @@ export default function DashboardLayout() {
     collapsed ? (
       <div className="my-3 border-t border-white/10" />
     ) : (
-      <p className="px-4 pt-5 pb-1 text-xs uppercase tracking-wide text-blue-300/80">
+      <p className="px-4 pt-5 pb-1 text-xs uppercase tracking-wide text-white/70">
         {label}
       </p>
     );
@@ -384,12 +341,12 @@ export default function DashboardLayout() {
         <NavLink
           key={to}
           to={to}
-          end={to === "/"}
+          end
           onClick={() => setMoreOpen(false)}
           className={({ isActive }) =>
-            `flex flex-col items-center gap-2 rounded-2xl p-3 text-center text-xs font-medium ${
+            `flex flex-col items-center gap-2 rounded-2xl p-3 text-center text-sm font-medium ${
               isActive
-                ? "bg-red-600 text-white"
+                ? "bg-red-700 text-white"
                 : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
             }`
           }
@@ -405,8 +362,7 @@ export default function DashboardLayout() {
     <div className="space-y-3">
       {items.map((group) => {
         const Icon = group.icon;
-        const open =
-          expandedGroups.includes(group.label) || groupIsActive(group);
+        const open = expandedGroups.includes(group.label);
 
         return (
           <div
@@ -434,16 +390,19 @@ export default function DashboardLayout() {
                   <NavLink
                     key={to}
                     to={to}
+                    end
                     onClick={() => setMoreOpen(false)}
                     className={({ isActive }) =>
-                      `flex items-center gap-2 rounded-xl p-3 text-sm ${
+                      `flex items-center gap-2 rounded-xl p-3 text-base font-medium transition ${
                         isActive
-                          ? "bg-red-600 text-white"
-                          : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200"
+                          ? "bg-red-700 text-white"
+                          : "bg-white text-slate-800 dark:bg-slate-900 dark:text-white"
                       }`
                     }
                   >
-                    {ItemIcon && <ItemIcon className="h-4 w-4 shrink-0" />}
+                    {ItemIcon && (
+                      <ItemIcon className="h-5 w-5 shrink-0" />
+                    )}
                     {label}
                   </NavLink>
                 ))}
@@ -462,11 +421,10 @@ export default function DashboardLayout() {
   );
 
   const footerButton =
-    "w-full flex items-center gap-3 rounded-xl text-sm text-blue-100/90 hover:text-white hover:bg-white/10 transition";
+    "w-full flex items-center gap-3 rounded-xl text-base font-medium text-white hover:bg-white/10 transition";
 
   return (
     <div className="min-h-screen flex bg-slate-100 dark:bg-slate-950">
-      {/* Sidebar: original desktop layout retained */}
       <aside
         className={`hidden lg:flex ${
           collapsed ? "w-[4.5rem]" : "w-64"
@@ -518,7 +476,7 @@ export default function DashboardLayout() {
               collapsed ? "justify-center py-3" : "px-4 py-2.5"
             }`}
           >
-            <LogOut className="h-4 w-4 shrink-0" />
+            <LogOut className="h-5 w-5 shrink-0" />
             {!collapsed && "Log out"}
           </button>
 
@@ -530,10 +488,10 @@ export default function DashboardLayout() {
             }`}
           >
             {collapsed ? (
-              <ChevronsRight className="h-4 w-4 shrink-0" />
+              <ChevronsRight className="h-5 w-5 shrink-0" />
             ) : (
               <>
-                <ChevronsLeft className="h-4 w-4 shrink-0" />
+                <ChevronsLeft className="h-5 w-5 shrink-0" />
                 Collapse
               </>
             )}
@@ -541,7 +499,6 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
-      {/* Content and existing header retained */}
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="sticky top-0 z-20 flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-3 bg-slate-100/90 dark:bg-slate-950/90 backdrop-blur">
           <div className="flex items-center gap-3 lg:hidden">
@@ -587,14 +544,13 @@ export default function DashboardLayout() {
         </main>
       </div>
 
-      {/* Existing mobile bottom navigation retained */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
         <ul className="grid grid-cols-5">
           {tabs.map(({ to, label, icon: Icon }) => (
             <li key={to}>
               <NavLink
                 to={to}
-                end={to === "/"}
+                end
                 className={({ isActive }) => tabClass(isActive)}
               >
                 {Icon && <Icon className="h-5 w-5" />}
@@ -614,7 +570,6 @@ export default function DashboardLayout() {
         </ul>
       </nav>
 
-      {/* Existing More panel extended with the new dropdown groups */}
       {moreOpen && (
         <div
           className="lg:hidden fixed inset-0 z-40"
@@ -690,43 +645,43 @@ export default function DashboardLayout() {
               </button>
             </div>
           </div>
+        </div>
+      )}
 
-          {liveNotice && (
-            <div
-              role="status"
-              className="fixed right-4 top-20 z-50 w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700 dark:bg-slate-900"
-            >
-              <div className="flex items-start gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                    {liveNotice.title}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                    {liveNotice.message}
-                  </p>
+      {liveNotice && (
+        <div
+          role="status"
+          className="fixed right-4 top-20 z-50 w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+        >
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                {liveNotice.title}
+              </p>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                {liveNotice.message}
+              </p>
 
-                  {liveNotice.target && (
-                    <NavLink
-                      to={liveNotice.target}
-                      onClick={() => setLiveNotice(null)}
-                      className="mt-3 inline-flex text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400"
-                    >
-                      Open grievance inbox
-                    </NavLink>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  aria-label="Dismiss notification"
+              {liveNotice.target && (
+                <NavLink
+                  to={liveNotice.target}
                   onClick={() => setLiveNotice(null)}
-                  className="rounded-lg px-2 py-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="mt-3 inline-flex text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400"
                 >
-                  ×
-                </button>
-              </div>
+                  Open grievance inbox
+                </NavLink>
+              )}
             </div>
-          )}
+
+            <button
+              type="button"
+              aria-label="Dismiss notification"
+              onClick={() => setLiveNotice(null)}
+              className="rounded-lg px-2 py-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
     </div>

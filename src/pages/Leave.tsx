@@ -247,7 +247,7 @@ export default function Leave() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-900 hover:bg-blue-950 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition"
+          className="w-full bg-red-700 hover:bg-blue-950 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition"
         >
           {loading ? "Submitting..." : "Submit Request"}
         </button>

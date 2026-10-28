@@ -17,12 +17,12 @@ import DocumentHub from "./pages/DocumentHub";
 import ManageDocuments from "./pages/ManageDocuments";
 import ReviewOnboarding from "./pages/ReviewOnboarding";
 import EmployeeList from "./pages/EmployeeList";
-import Messages from "./pages/Message";
+// import Messages from "./pages/Message";
 import OnboardingDocs from "./pages/OnboardingDocuments";
 import SubmitGrievance from "./pages/grievances/SubmitGrievance";
 import {
   GrievancesView,
-  GrievancesManage,
+  // GrievancesManage,
 } from "./pages/grievances/GrievanceBoard";
 import RequisitionForm from "./pages/requisitions/RequisitionForm";
 import RequisitionsAdmin from "./pages/requisitions/RequisitionsAdmin";
@@ -30,6 +30,7 @@ import Departments from "./pages/Departments";
 import AssetsPage from "./pages/Assets";
 import AcceptAssetAssignment from "./pages/AcceptAssetAssignment";
 import AssetOperations from "./pages/AssetOperations";
+import MyRequisitions from "./pages/requisitions/MyRequisitions";
 
 export default function App() {
   return (
@@ -54,7 +55,7 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/leave" element={<Leave />} />
                 <Route path="/onboarding" element={<OnboardingDocs />} />
-                <Route path="/messages" element={<Messages />} />
+                {/* <Route path="/messages" element={<Messages />} /> */}
                 <Route path="/documents" element={<DocumentHub />} />
                 <Route path="/my-submissions" element={<MySubmissions />} />
                 <Route path="/review-leave" element={<ReviewLeave />} />
@@ -162,37 +163,42 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/requisitions/submit" element={<RequisitionForm />} />
-
-<Route path="/requisitions/mine" element={<RequisitionForm />} />
-
-<Route
-  path="/requisitions"
-  element={
-    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
-      <RequisitionsAdmin />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/requisitions/review"
-  element={
-    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
-      <RequisitionsAdmin />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/requisitions/manage"
-  element={
-    <ProtectedRoute allowedRoles={["superadmin"]}>
-      <RequisitionsAdmin />
-    </ProtectedRoute>
-  }
-/>
-
+                <Route
+                  path="/requisitions/submit"
+                  element={<RequisitionForm />}
+                />
+                <Route
+                  path="/requisitions/mine"
+                  element={
+                    <ProtectedRoute>
+                      <MyRequisitions />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/requisitions"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+                      <RequisitionsAdmin />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/requisitions/review"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+                      <RequisitionsAdmin />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/requisitions/manage"
+                  element={
+                    <ProtectedRoute allowedRoles={["superadmin"]}>
+                      <RequisitionsAdmin />
+                    </ProtectedRoute>
+                  }
+                />
                 {/* admin + superadmin */}
                 <Route
                   path="/add-associate"

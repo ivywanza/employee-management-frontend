@@ -88,7 +88,7 @@ export default function ManageDocuments() {
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center gap-2 bg-blue-900 hover:bg-blue-950 disabled:opacity-60 text-white font-semibold px-5 py-2.5 rounded-lg transition"
+          className="flex items-center gap-2 bg-red-700 hover:bg-red-800 disabled:opacity-60 text-white font-semibold px-5 py-2.5 rounded-lg transition"
         >
           <Upload className="h-4 w-4" />
           {loading ? "Uploading..." : "Upload Document"}
