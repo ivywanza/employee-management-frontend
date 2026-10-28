@@ -20,10 +20,16 @@ import EmployeeList from "./pages/EmployeeList";
 import Messages from "./pages/Message";
 import OnboardingDocs from "./pages/OnboardingDocuments";
 import SubmitGrievance from "./pages/grievances/SubmitGrievance";
-import { GrievancesView, GrievancesManage } from "./pages/grievances/GrievanceBoard";
+import {
+  GrievancesView,
+  GrievancesManage,
+} from "./pages/grievances/GrievanceBoard";
 import RequisitionForm from "./pages/requisitions/RequisitionForm";
 import RequisitionsAdmin from "./pages/requisitions/RequisitionsAdmin";
-
+import Departments from "./pages/Departments";
+import AssetsPage from "./pages/Assets";
+import AcceptAssetAssignment from "./pages/AcceptAssetAssignment";
+import AssetOperations from "./pages/AssetOperations";
 
 export default function App() {
   return (
@@ -54,6 +60,26 @@ export default function App() {
                 <Route path="/review-leave" element={<ReviewLeave />} />
                 <Route path="/manage-documents" element={<ManageDocuments />} />
                 <Route
+                  path="/assets/accept-assignment"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["employee", "admin", "superadmin"]}
+                    >
+                      <AcceptAssetAssignment />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/assets/operations"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["employee", "admin", "superadmin"]}
+                    >
+                      <AssetOperations />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/review-onboarding"
                   element={<ReviewOnboarding />}
                 />
@@ -63,17 +89,110 @@ export default function App() {
                   element={<SubmitGrievance />}
                 />
                 <Route path="/grievances/view" element={<GrievancesView />} />{" "}
+                <Route
+                  path="/departments"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+                      <Departments />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/departments/manage"
+                  element={
+                    <ProtectedRoute allowedRoles={["superadmin"]}>
+                      <Departments />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/assets"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+                      <AssetsPage mode="view" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/assets/mine"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["employee", "admin", "superadmin"]}
+                    >
+                      <AssetsPage mode="mine" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/assets/requests"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["employee", "admin", "superadmin"]}
+                    >
+                      <AssetsPage mode="request" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/assets/manage"
+                  element={
+                    <ProtectedRoute allowedRoles={["superadmin"]}>
+                      <AssetsPage mode="manage" />
+                    </ProtectedRoute>
+                  }
+                />
                 {/* managers only */}
                 <Route
-                  path="/grievances/manage"
-                  element={<GrievancesManage />}
-                />{" "}
-                {/* managers only */}
-                <Route path="/requisitions" element={<RequisitionForm />} />
+                  path="/grievances/submit"
+                  element={<SubmitGrievance />}
+                />
                 <Route
-                  path="/requisitions/manage"
-                  element={<RequisitionsAdmin />}
-                />{" "}
+                  path="/grievances/inbox"
+                  element={
+                    <ProtectedRoute allowedRoles={["superadmin"]}>
+                      <GrievancesView />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/grievances/view"
+                  element={
+                    <ProtectedRoute allowedRoles={["superadmin"]}>
+                      <GrievancesView />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/requisitions/submit" element={<RequisitionForm />} />
+
+<Route path="/requisitions/mine" element={<RequisitionForm />} />
+
+<Route
+  path="/requisitions"
+  element={
+    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+      <RequisitionsAdmin />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/requisitions/review"
+  element={
+    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+      <RequisitionsAdmin />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/requisitions/manage"
+  element={
+    <ProtectedRoute allowedRoles={["superadmin"]}>
+      <RequisitionsAdmin />
+    </ProtectedRoute>
+  }
+/>
+
                 {/* admin + superadmin */}
                 <Route
                   path="/add-associate"

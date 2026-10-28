@@ -119,12 +119,7 @@ export default function DashboardLayout() {
           icon: Building2,
           roles: ADMIN_ROLES,
         },
-        {
-          to: "/departments/manage",
-          label: "Manage Departments",
-          icon: Users,
-          roles: MANAGEMENT_ROLES,
-        },
+        
       ],
     },
 
@@ -152,31 +147,14 @@ export default function DashboardLayout() {
       icon: Package,
       items: [
         {
-          to: "/assets",
-          label: "View Assets",
-          icon: Package,
-          roles: REVIEW_ROLES,
-        },
-        {
-          to: "/assets/mine",
-          label: "My Assigned Assets",
-          icon: FolderOpen,
-          roles: ALL_ROLES,
-        },
-        {
-          to: "/assets/requests",
-          label: "Request an Asset",
-          icon: ClipboardCheck,
-          roles: ALL_ROLES,
-        },
-        {
-          to: "/assets/manage",
+          to: "/assets/operations",
           label: "Manage Assets",
-          icon: Users,
-          roles: MANAGEMENT_ROLES,
+          icon: Package,
+          roles: ALL_ROLES,
         },
       ],
     },
+
     {
       label: "Requisitions",
       icon: ShoppingCart,
@@ -213,36 +191,36 @@ export default function DashboardLayout() {
         },
       ],
     },
-    {
-      label: "Tasks & Timesheets",
-      icon: ListTodo,
-      items: [
-        {
-          to: "/tasks/mine",
-          label: "My Tasks",
-          icon: ListTodo,
-          roles: ALL_ROLES,
-        },
-        {
-          to: "/timesheets/mine",
-          label: "My Timesheets",
-          icon: CalendarDays,
-          roles: ALL_ROLES,
-        },
-        {
-          to: "/tasks",
-          label: "Manage Tasks",
-          icon: ClipboardCheck,
-          roles: REVIEW_ROLES,
-        },
-        {
-          to: "/timesheets/review",
-          label: "Review Timesheets",
-          icon: ClipboardCheck,
-          roles: REVIEW_ROLES,
-        },
-      ],
-    },
+    // {
+    //   label: "Tasks & Timesheets",
+    //   icon: ListTodo,
+    //   items: [
+    //     {
+    //       to: "/tasks/mine",
+    //       label: "My Tasks",
+    //       icon: ListTodo,
+    //       roles: ALL_ROLES,
+    //     },
+    //     {
+    //       to: "/timesheets/mine",
+    //       label: "My Timesheets",
+    //       icon: CalendarDays,
+    //       roles: ALL_ROLES,
+    //     },
+    //     {
+    //       to: "/tasks",
+    //       label: "Manage Tasks",
+    //       icon: ClipboardCheck,
+    //       roles: REVIEW_ROLES,
+    //     },
+    //     {
+    //       to: "/timesheets/review",
+    //       label: "Review Timesheets",
+    //       icon: ClipboardCheck,
+    //       roles: REVIEW_ROLES,
+    //     },
+    //   ],
+    // },
   ];
 
   const toggleCollapsed = () => {
