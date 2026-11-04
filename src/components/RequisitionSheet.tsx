@@ -51,13 +51,13 @@ function Logo() {
   if (failed) {
     return (
       <div className="req-logo-fallback">
-        <strong>RAi</strong>
+        <strong>RAI</strong>
         <span>red ant international</span>
       </div>
     );
   }
   // Put the real logo at /public/rai-logo.png
-  return <img className="req-logo" src="/rai-logo.png" alt="RAi, red ant international" onError={() => setFailed(true)} />;
+  return <img className="req-logo" src="/RedantLogo.webp" alt="RAi, red ant international" onError={() => setFailed(true)} />;
 }
 
 function Copy({ d }: { d: SheetData }): ReactNode {

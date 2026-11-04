@@ -21,7 +21,7 @@ export default function Login() {
       navigate("/");
     } catch (err: any) {
       if (!err.response) {
-        setError("Cannot reach the server. Is the backend running?");
+        setError("Try again");
       } else if (typeof err.response.data?.detail === "string") {
         setError(err.response.data.detail);
       } else {

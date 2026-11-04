@@ -12,7 +12,7 @@ const labelClass = "block text-xs font-semibold text-slate-600 uppercase trackin
 
 function errorText(err: unknown, fallback: string) {
   if (axios.isAxiosError(err)) {
-    if (!err.response) return "Cannot reach the server. Is the backend running?";
+    if (!err.response) return "Try again";
     const detail = err.response.data?.detail;
     if (typeof detail === "string") return detail;
     if (Array.isArray(detail)) {

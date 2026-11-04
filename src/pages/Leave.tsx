@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { CalendarPlus, Sun } from "lucide-react";
@@ -24,6 +25,19 @@ interface Balance {
   menstrual_days_remaining: number;
 }
 
+// Accepts Kenyan and Rwandan mobile numbers.
+const isValidMobilePhone = (phone: string): boolean => {
+  const normalized = phone.replace(/[\s\-()]/g, "");
+
+  const kenyaPattern = /^(?:0|\+254)(?:7|1)\d{8}$/;
+  const rwandaPattern = /^(?:0|\+250)7[2389]\d{7}$/;
+
+  return (
+    kenyaPattern.test(normalized) ||
+    rwandaPattern.test(normalized)
+  );
+};
+
 export default function Leave() {
   const [form, setForm] = useState({
     leave_type: "sick",
@@ -33,33 +47,78 @@ export default function Leave() {
     emergency_contact_name: "",
     emergency_contact_phone: "",
   });
+
   const [balance, setBalance] = useState<Balance | null>(null);
+
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
+
   const [loading, setLoading] = useState(false);
 
-  const loadBalance = () =>
-    api
-      .get<Balance>("/leave-requests/balance")
-      .then((res) => setBalance(res.data));
+  const loadBalance = async () => {
+    try {
+      const res = await api.get<Balance>("/leave-requests/balance");
+      setBalance(res.data);
+    } catch {
+      setMessage({
+        type: "error",
+        text: "Unable to load your leave balance.",
+      });
+    }
+  };
 
   useEffect(() => {
-    loadBalance();
-  }, []);
+  let cancelled = false;
+
+  const fetchBalance = async () => {
+    try {
+      const res = await api.get<Balance>("/leave-requests/balance");
+
+      if (!cancelled) {
+        setBalance(res.data);
+      }
+    } catch {
+      if (!cancelled) {
+        setMessage({
+          type: "error",
+          text: "Unable to load your leave balance.",
+        });
+      }
+    }
+  };
+
+  fetchBalance();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((current) => ({
+      ...current,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
+
+    if (!form.start_date || !form.end_date) {
+      setMessage({
+        type: "error",
+        text: "Please select both the start date and end date.",
+      });
+      return;
+    }
 
     if (form.end_date < form.start_date) {
       setMessage({
@@ -69,13 +128,39 @@ export default function Leave() {
       return;
     }
 
+    if (!form.emergency_contact_name.trim()) {
+      setMessage({
+        type: "error",
+        text: "Emergency contact name is required.",
+      });
+      return;
+    }
+
+    if (!isValidMobilePhone(form.emergency_contact_phone)) {
+      setMessage({
+        type: "error",
+        text: "Enter a valid Kenyan or Rwandan mobile number, e.g. 0712345678 or +250788123456.",
+      });
+      return;
+    }
+
     setLoading(true);
+
     try {
-      await api.post("/leave-requests/", form);
+      await api.post("/leave-requests/", {
+        ...form,
+        emergency_contact_name: form.emergency_contact_name.trim(),
+        emergency_contact_phone: form.emergency_contact_phone.replace(
+          /[\s\-()]/g,
+          "",
+        ),
+      });
+
       setMessage({
         type: "success",
         text: "Your leave request has been submitted.",
       });
+
       setForm({
         leave_type: "sick",
         start_date: "",
@@ -84,11 +169,13 @@ export default function Leave() {
         emergency_contact_name: "",
         emergency_contact_phone: "",
       });
-      loadBalance();
+
+      await loadBalance();
     } catch (err: unknown) {
       const detail = axios.isAxiosError(err)
         ? err.response?.data?.detail
         : undefined;
+
       setMessage({
         type: "error",
         text:
@@ -102,11 +189,18 @@ export default function Leave() {
   };
 
   const annualPercent = balance
-    ? Math.min(100, (balance.days_used / balance.annual_allowance) * 100)
+    ? Math.min(
+        100,
+        balance.annual_allowance > 0
+          ? (balance.days_used / balance.annual_allowance) * 100
+          : 0,
+      )
     : 0;
 
   const requestedDays =
-    form.start_date && form.end_date && form.end_date >= form.start_date
+    form.start_date &&
+    form.end_date &&
+    form.end_date >= form.start_date
       ? Math.round(
           (new Date(form.end_date).getTime() -
             new Date(form.start_date).getTime()) /
@@ -124,6 +218,7 @@ export default function Leave() {
           <div className="h-11 w-11 rounded-xl bg-red-100 dark:bg-red-400/20 text-red-700 dark:text-red-300 flex items-center justify-center">
             <CalendarPlus className="h-5 w-5" />
           </div>
+
           <div>
             <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
               Apply for Leave
@@ -138,6 +233,7 @@ export default function Leave() {
           <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">
             Leave Type
           </label>
+
           <select
             name="leave_type"
             required
@@ -158,6 +254,7 @@ export default function Leave() {
             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">
               Start Date
             </label>
+
             <input
               type="date"
               name="start_date"
@@ -168,10 +265,12 @@ export default function Leave() {
               className="w-full rounded-lg border border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
             />
           </div>
+
           <div>
             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">
               End Date
             </label>
+
             <input
               type="date"
               name="end_date"
@@ -183,6 +282,7 @@ export default function Leave() {
             />
           </div>
         </div>
+
         {requestedDays > 0 && (
           <p className="text-sm text-slate-600 dark:text-slate-300">
             You are requesting{" "}
@@ -191,28 +291,35 @@ export default function Leave() {
           </p>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">
               Emergency Contact (Name)
             </label>
+
             <input
               type="text"
               name="emergency_contact_name"
               value={form.emergency_contact_name}
               onChange={handleChange}
+              required
               className="w-full rounded-lg border border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
             />
           </div>
+
           <div>
             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">
               Emergency Contact (Phone)
             </label>
+
             <input
-              type="text"
+              type="tel"
               name="emergency_contact_phone"
+              required
               value={form.emergency_contact_phone}
               onChange={handleChange}
+              placeholder="0712345678 or +250788123456"
+              autoComplete="tel"
               className="w-full rounded-lg border border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
             />
           </div>
@@ -222,6 +329,7 @@ export default function Leave() {
           <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">
             Reason (optional)
           </label>
+
           <textarea
             name="reason"
             rows={4}
@@ -247,7 +355,7 @@ export default function Leave() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-red-700 hover:bg-blue-950 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition"
+          className="w-full bg-red-700 hover:bg-red-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition"
         >
           {loading ? "Submitting..." : "Submit Request"}
         </button>
@@ -259,6 +367,7 @@ export default function Leave() {
             <Sun className="h-3.5 w-3.5" />
             Annual Leave {balance?.year ?? ""}
           </div>
+
           <p className="text-4xl font-extrabold mt-2">
             {balance ? balance.days_remaining : "--"}
             <span className="text-base font-medium text-blue-200">
@@ -266,36 +375,20 @@ export default function Leave() {
               / {balance?.annual_allowance ?? 22} days left
             </span>
           </p>
+
           <div className="mt-4 h-2 rounded-full bg-white/15 overflow-hidden">
             <div
               className="h-full bg-red-500 rounded-full transition-all"
               style={{ width: `${annualPercent}%` }}
             />
           </div>
+
           <p className="text-xs text-blue-200 mt-2">
             {balance?.days_used ?? 0} days used this year
           </p>
         </div>
 
-        {/* <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs uppercase tracking-wide">
-            <Droplet className="h-3.5 w-3.5" />
-            Menstrual Leave {balance?.menstrual_month ?? ""}
-          </div>
-          <p className="text-3xl font-extrabold mt-2 text-slate-800 dark:text-slate-100">
-            {balance ? balance.menstrual_days_remaining : "--"}
-            <span className="text-sm font-medium text-slate-500 dark:text-slate-400"> / 2 days left this month</span>
-          </p>
-          <div className="mt-4 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-            <div
-              className="h-full bg-red-500 rounded-full transition-all"
-              style={{ width: `${menstrualPercent}%` }}
-            />
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-            Doesn't count against your annual leave balance.
-          </p>
-        </div> */}
+        {/* Menstrual leave balance card can be restored here when needed. */}
       </div>
     </div>
   );

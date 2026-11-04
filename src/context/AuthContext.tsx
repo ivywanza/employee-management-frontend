@@ -23,7 +23,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return existing;
   });
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [wizardSkipped, setWizardSkipped] = useState(() => sessionStorage.getItem(SKIP_KEY) === "1");
+  const [wizardSkipped, setWizardSkipped] = useState(
+    () => sessionStorage.getItem(SKIP_KEY) === "1",
+  );
 
   const logout = useCallback(() => {
     localStorage.removeItem("access_token");
@@ -49,12 +51,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = useCallback(async (): Promise<Profile> => {
     const me = (await api.get("/users/me")).data;
+
     let departmentName: string | null = null;
+
     if (me.department_id) {
-      const departments = (await api.get("/departments/")).data;
-      departmentName =
-        departments.find((d: { id: string; name: string }) => d.id === me.department_id)?.name ?? null;
+      const department = (await api.get("/departments/mine")).data;
+      departmentName = department.name ?? null;
     }
+
     return {
       id: me.id,
       full_name: me.full_name,
@@ -90,7 +94,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, fetchProfile, logout]);
 
   return (
-    <AuthContext.Provider value={{ user, profile, login, logout, refreshProfile, wizardSkipped, skipWizard }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        login,
+        logout,
+        refreshProfile,
+        wizardSkipped,
+        skipWizard,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

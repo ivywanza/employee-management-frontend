@@ -1,10 +1,10 @@
 import axios from "axios";
 
-export const API_URL =
-  (import.meta.env.VITE_ASSOCIATE_API_URL as string | undefined) ?? "/api"
+// export const API_URL =
+//   (import.meta.env.VITE_ASSOCIATE_API_URL as string | undefined) ?? "/api"
 // "https://employee-management-api-8m8b.onrender.com"
 ;
-
+export const API_URL ='http://localhost:8000/'
 const api = axios.create({
   baseURL: API_URL,
 });

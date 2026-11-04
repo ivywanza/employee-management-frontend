@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { CheckCircle2, KeyRound, FileUp, Upload, Eye, EyeOff } from "lucide-react";
+import {
+  CheckCircle2,
+  KeyRound,
+  FileUp,
+  Upload,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import api from "../lib/api";
 import { useAuth } from "../context/auth";
-
 
 const DOCS = [
   { type: "National ID", required: true },
@@ -24,7 +30,9 @@ function errorText(err: unknown, fallback: string) {
     const detail = err.response?.data?.detail;
     if (typeof detail === "string") return detail;
     if (Array.isArray(detail)) {
-      return detail.map((d: { msg?: string }) => d.msg ?? "Invalid input").join(", ");
+      return detail
+        .map((d: { msg?: string }) => d.msg ?? "Invalid input")
+        .join(", ");
     }
   }
   return fallback;
@@ -32,7 +40,8 @@ function errorText(err: unknown, fallback: string) {
 
 const inputClass =
   "w-full rounded-xl border border-blue-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-600";
-const labelClass = "block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1";
+const labelClass =
+  "block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1";
 
 export default function Setup() {
   const { profile, refreshProfile, skipWizard, logout } = useAuth();
@@ -112,15 +121,23 @@ export default function Setup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-blue-700 px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-red-700 px-4 py-8">
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-950 to-blue-800 px-6 sm:px-8 py-7">
-          <p className="text-xs uppercase tracking-widest text-red-400 font-semibold">Redant International</p>
-          <h1 className="text-2xl font-bold text-white mt-1">Welcome{firstName ? `, ${firstName}` : ""}</h1>
-          <p className="text-blue-100 text-sm mt-1">Two quick steps and you're in.</p>
+        <div className="bg-red-800 px-6 sm:px-8 py-7">
+          <p className="text-xs uppercase tracking-widest text-red-400 font-semibold">
+            Redant International
+          </p>
+          <h1 className="text-2xl font-bold text-white mt-1">
+            Welcome{firstName ? `, ${firstName}` : ""}
+          </h1>
+          <p className="text-blue-100 text-sm mt-1">
+            Two quick steps and you're in.
+          </p>
 
           <div className="mt-5 flex items-center gap-3 text-sm">
-            <div className={`flex items-center gap-2 ${passwordStep ? "text-white" : "text-blue-200"}`}>
+            <div
+              className={`flex items-center gap-2 ${passwordStep ? "text-white" : "text-blue-200"}`}
+            >
               {passwordStep ? (
                 <span className="h-6 w-6 rounded-full bg-red-600 text-white text-xs font-bold flex items-center justify-center">
                   1
@@ -131,10 +148,14 @@ export default function Setup() {
               Password
             </div>
             <div className="h-px flex-1 bg-white/25" />
-            <div className={`flex items-center gap-2 ${passwordStep ? "text-blue-300" : "text-white"}`}>
+            <div
+              className={`flex items-center gap-2 ${passwordStep ? "text-blue-300" : "text-white"}`}
+            >
               <span
                 className={`h-6 w-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                  passwordStep ? "bg-white/20 text-blue-200" : "bg-red-600 text-white"
+                  passwordStep
+                    ? "bg-white/20 text-blue-200"
+                    : "bg-red-600 text-white"
                 }`}
               >
                 2
@@ -152,15 +173,17 @@ export default function Setup() {
                   <KeyRound className="h-5 w-5" />
                 </div>
                 <p className="text-sm text-slate-600">
-                  You signed in with a temporary password. Choose your own now. It must be at least 8 characters and
-                  different from the temporary one.
+                  You signed in with a temporary password. Choose your own now.
+                  It must be at least 8 characters and different from the
+                  temporary one.
                 </p>
               </div>
 
-              <div>
+              <div className="relative">
                 <label className={labelClass}>New password</label>
+
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   minLength={8}
                   maxLength={72}
@@ -169,10 +192,12 @@ export default function Setup() {
                   onChange={(e) => setPassword(e.target.value)}
                   className={inputClass}
                 />
+
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-[70%] -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -181,10 +206,12 @@ export default function Setup() {
                   )}
                 </button>
               </div>
-              <div>
+
+              <div className="relative">
                 <label className={labelClass}>Confirm new password</label>
+
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   minLength={8}
                   maxLength={72}
@@ -193,10 +220,12 @@ export default function Setup() {
                   onChange={(e) => setConfirm(e.target.value)}
                   className={inputClass}
                 />
+
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-[70%] -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -207,13 +236,15 @@ export default function Setup() {
               </div>
 
               {error && (
-                <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+                <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {error}
+                </p>
               )}
 
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full bg-blue-900 hover:bg-blue-950 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl transition"
+                className="w-full bg-red-700 hover:bg-red-800 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl transition"
               >
                 {saving ? "Saving..." : "Save password and continue"}
               </button>
@@ -226,11 +257,13 @@ export default function Setup() {
                 </div>
                 <div>
                   <p className="text-sm text-slate-600">
-                    Upload your onboarding documents as PDF, JPG or PNG. You can skip this and finish later, and
-                    we'll remind you the next time you sign in.
+                    Upload your onboarding documents as PDF, JPG or PNG. You can
+                    skip this and finish later, and we'll remind you the next
+                    time you sign in.
                   </p>
                   <p className="text-xs font-semibold text-slate-500 mt-1">
-                    {requiredDone} of {required.length} required documents uploaded
+                    {requiredDone} of {required.length} required documents
+                    uploaded
                   </p>
                 </div>
               </div>
@@ -239,10 +272,17 @@ export default function Setup() {
                 {DOCS.map(({ type, required: isRequired }) => {
                   const done = uploaded.has(type);
                   return (
-                    <div key={type} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <div
+                      key={type}
+                      className="flex items-center justify-between gap-3 px-4 py-3"
+                    >
                       <p className="text-sm font-medium text-slate-800">
                         {type}
-                        {!isRequired && <span className="text-xs text-slate-400 font-normal ml-2">(optional)</span>}
+                        {!isRequired && (
+                          <span className="text-xs text-slate-400 font-normal ml-2">
+                            (optional)
+                          </span>
+                        )}
                       </p>
                       {done ? (
                         <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
@@ -278,7 +318,9 @@ export default function Setup() {
               </div>
 
               {error && (
-                <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+                <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {error}
+                </p>
               )}
 
               <div className="flex flex-col-reverse sm:flex-row gap-3 pt-1">
@@ -300,7 +342,10 @@ export default function Setup() {
           )}
 
           <p className="text-center mt-6">
-            <button onClick={logout} className="text-xs text-slate-400 hover:text-slate-600">
+            <button
+              onClick={logout}
+              className="text-lg text-slate-400 hover:text-slate-600"
+            >
               Sign out
             </button>
           </p>

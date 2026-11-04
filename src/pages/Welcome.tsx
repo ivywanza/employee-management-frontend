@@ -40,7 +40,7 @@ export default function Welcome() {
   }, [finish]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-blue-700 flex flex-col items-center justify-center px-6 text-center">
+    <div className="relative min-h-screen overflow-hidden bg-amber-500 flex flex-col items-center justify-center px-6 text-center">
       {confetti.map((c) => (
         <span
           key={c.id}

@@ -32,6 +32,7 @@ import AcceptAssetAssignment from "./pages/AcceptAssetAssignment";
 import AssetOperations from "./pages/AssetOperations";
 import MyRequisitions from "./pages/requisitions/MyRequisitions";
 
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -55,6 +56,7 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/leave" element={<Leave />} />
                 <Route path="/onboarding" element={<OnboardingDocs />} />
+                <Route path="/leave" element={<Leave />} />
                 {/* <Route path="/messages" element={<Messages />} /> */}
                 <Route path="/documents" element={<DocumentHub />} />
                 <Route path="/my-submissions" element={<MySubmissions />} />
