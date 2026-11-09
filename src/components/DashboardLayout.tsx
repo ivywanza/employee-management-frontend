@@ -22,7 +22,6 @@ import {
   MessageSquareWarning,
   Package,
   ShoppingCart,
-  ListTodo,
   Bell,
   Check,
   CheckCheck,
@@ -476,6 +475,7 @@ export default function DashboardLayout() {
         </div>
       );
     });
+
   const sectionHeading = (label: string) =>
     collapsed ? (
       <div className="my-3 border-t border-white/10" />
@@ -596,7 +596,7 @@ export default function DashboardLayout() {
           )}
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+        <nav className="sidebar-scrollbar min-h-0 flex-1 overflow-y-scroll px-3 py-4 space-y-1">
           {sidebarLinks(everyone)}
 
           {isAdmin && (
@@ -804,7 +804,9 @@ export default function DashboardLayout() {
                       )}
                     </div>
 
-                
+                    <div className="hidden">
+                      {/* Preserves the existing notification panel structure. */}
+                    </div>
                   </div>
                 </>
               )}

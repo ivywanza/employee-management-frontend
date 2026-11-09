@@ -41,10 +41,9 @@
 /* Sidebar scrollbar */
 .sidebar-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 
-/* Chrome, Edge and Safari */
 .sidebar-scrollbar::-webkit-scrollbar {
   width: 5px;
 }
@@ -54,11 +53,10 @@
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  transition: background 0.2s ease;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.45);
 }
