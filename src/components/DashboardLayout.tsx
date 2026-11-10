@@ -111,7 +111,13 @@ export default function DashboardLayout() {
 
   const everyone: NavItem[] = [
     { to: "/", label: "Home", icon: LayoutDashboard },
-    { to: "/leave", label: "Apply for Leave", icon: CalendarDays },
+    {
+  to: "/leave",
+  label: "Apply for Leave",
+  icon: CalendarDays,
+  roles: ["employee", "admin"],
+},
+
     { to: "/documents", label: "Document Hub", icon: FolderOpen },
     { to: "/onboarding", label: "Onboarding Documents", icon: FileText },
     { to: "/my-submissions", label: "My Submissions", icon: ClipboardCheck },
@@ -138,12 +144,12 @@ export default function DashboardLayout() {
       icon: Building2,
       roles: ADMIN_ROLES,
       items: [
-        {
-          to: "/departments",
-          label: "View Departments",
-          icon: Building2,
-          roles: ADMIN_ROLES,
-        },
+        // {
+        //   to: "/departments",
+        //   label: "View Departments",
+        //   icon: Building2,
+        //   roles: ADMIN_ROLES,
+        // },
         {
           to: "/departments/manage",
           label: "Manage Departments",
@@ -160,7 +166,7 @@ export default function DashboardLayout() {
           to: "/grievances/submit",
           label: "Submit Grievance",
           icon: MessageSquareWarning,
-          roles: ALL_ROLES,
+          roles: ["employee", "admin"],
         },
         {
           to: "/grievances/inbox",
@@ -396,12 +402,12 @@ export default function DashboardLayout() {
         end={to === "/"}
         title={collapsed ? label : undefined}
         className={({ isActive }) =>
-          `flex items-center gap-3 rounded-xl text-sm font-medium transition ${
+          `flex items-center gap-3 rounded-xl text-md font-medium transition ${
             collapsed ? "justify-center py-3" : "px-4 py-2.5"
           } ${
             isActive
-              ? "bg-white text-emerald-950 shadow border-2 border-blue-800"
-              : "text-blue-100/90 hover:bg-white/10"
+              ? "bg-white text-emerald-950 shadow border-2 border-red-800"
+              : "text-white hover:bg-white/10"
           }`
         }
       >
@@ -587,7 +593,7 @@ export default function DashboardLayout() {
           <div className="h-14 w-14 rounded-xl bg-white flex items-center justify-center text-red-700 font-extrabold text-lg shrink-0 shadow-md">
             <img
               src="/RedantLogo.webp"
-              alt="Redant International"
+              alt="Red ant International"
               className="max-h-full max-w-full object-contain"
             />
           </div>
@@ -655,12 +661,12 @@ export default function DashboardLayout() {
             <div className="h-9 w-9 rounded-xl bg-red-600 flex items-center justify-center text-white text-sm font-extrabold shadow">
               <img
                 src="/RedantLogo.webp"
-                alt="Redant International"
+                alt="Red ant International"
                 className="max-h-full max-w-full object-contain"
               />
             </div>
             <span className="font-bold text-slate-800 dark:text-slate-100">
-              RedAnt Portal
+              Red Ant Portal
             </span>
           </div>
 
@@ -818,7 +824,7 @@ export default function DashboardLayout() {
               </p>
             </div>
 
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-800 to-red-600 text-white font-bold flex items-center justify-center shadow">
+            <div className="h-10 w-10 rounded-full bg-amber-400 text-white font-bold flex items-center justify-center shadow">
               {initial}
             </div>
           </div>

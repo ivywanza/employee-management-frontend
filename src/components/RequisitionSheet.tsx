@@ -122,9 +122,9 @@ export default function RequisitionSheet({ data = {} }: { data?: SheetData }) {
     <div className="req-sheet">
       <Copy d={data} />
       <div className="req-cut" aria-hidden="true">
-        <span>✂</span>
+    
       </div>
-      <Copy d={data} />
+     
     </div>
   );
 }

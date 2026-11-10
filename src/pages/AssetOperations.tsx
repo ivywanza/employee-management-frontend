@@ -1,704 +1,279 @@
 
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
 import {
-  Package,
+  KeyRound,
   CheckCircle2,
-  Users,
-  Clock,
-  Plus,
-  Search,
-  ClipboardCheck,
-  Laptop,
-  Wrench,
-  RefreshCw,
-  AlertCircle,
-  FolderOpen,
-  ArrowRight,
-  ClipboardList,
+  Eye,
+  EyeOff,
 } from "lucide-react";
-
 import api from "../lib/api";
-import { useAuth } from "../context/auth";
 
-type Asset = {
-  id: string;
-  name?: string;
-  asset_tag?: string;
-  status: string;
-  assignment_pending_to_id?: string | null;
-};
+type Stage = "request" | "reset" | "done";
 
-type AssetRequest = {
-  id: string;
-  item_name?: string;
-  status: string;
-  created_at?: string;
-};
+const inputClass =
+  "w-full rounded-xl border border-blue-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-600";
 
-type Category = {
-  id: string;
-  name: string;
-};
+const labelClass =
+  "block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1";
 
-function readArray<T>(response: any): T[] {
-  const data = response?.data ?? response;
-
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.items)) return data.items;
-  if (Array.isArray(data?.results)) return data.results;
-
-  return [];
+function errorText(err: unknown, fallback: string) {
+  if (axios.isAxiosError(err)) {
+    if (!err.response) return "Try again";
+    const detail = err.response.data?.detail;
+    if (typeof detail === "string") return detail;
+    if (Array.isArray(detail)) {
+      return detail
+        .map((d: { msg?: string }) => d.msg ?? "Invalid input")
+        .join(", ");
+    }
+  }
+  return fallback;
 }
 
-function Metric({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-  color,
-  onClick,
-}: {
-  title: string;
-  value: number | string;
-  subtitle: string;
-  icon: typeof Package;
-  color: string;
-  onClick?: () => void;
-}) {
-  return (
-    <div
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
-      onKeyDown={
-        onClick
-          ? (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onClick();
-              }
-            }
-          : undefined
-      }
-      className={`rounded-xl border border-slate-200 bg-white p-4 sm:p-5 ${
-        onClick
-          ? "cursor-pointer transition hover:border-slate-300 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
-          : ""
-      }`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm text-slate-500">{title}</p>
-          <p className="mt-2 text-3xl font-semibold text-slate-900">
-            {value}
-          </p>
-        </div>
-
-        <div className={`rounded-lg p-3 ${color}`}>
-          <Icon size={21} />
-        </div>
-      </div>
-
-      <p className="mt-3 text-sm text-slate-500">{subtitle}</p>
-    </div>
-  );
-}
-
-export default function AssetOperations() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const role = user?.role;
-  const isManagement = role === "admin" || role === "superadmin";
-  const isSuperadmin = role === "superadmin";
-
-  const [inventory, setInventory] = useState<Asset[]>([]);
-  const [myAssets, setMyAssets] = useState<Asset[]>([]);
-  const [requests, setRequests] = useState<AssetRequest[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function ForgotPassword() {
+  const [stage, setStage] = useState<Stage>("request");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
+  const requestCode = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     setError("");
+    setInfo("");
+    setLoading(true);
 
     try {
-      if (isManagement) {
-        const results = await Promise.allSettled([
-          api.get("/assets"),
-          api.get("/assets/requests"),
-          api.get("/asset-categories/"),
-        ]);
-
-        const [assetsResult, requestsResult, categoriesResult] = results;
-        const failures: string[] = [];
-
-        if (assetsResult.status === "fulfilled") {
-          setInventory(readArray<Asset>(assetsResult.value));
-        } else {
-          failures.push("company inventory");
-          console.error("Failed to load company assets:", assetsResult.reason);
-        }
-
-        if (requestsResult.status === "fulfilled") {
-          setRequests(readArray<AssetRequest>(requestsResult.value));
-        } else {
-          failures.push("company requests");
-          console.error(
-            "Failed to load company asset requests:",
-            requestsResult.reason,
-          );
-        }
-
-        if (categoriesResult.status === "fulfilled") {
-          setCategories(readArray<Category>(categoriesResult.value));
-        } else {
-          failures.push("asset categories");
-          console.error(
-            "Failed to load asset categories:",
-            categoriesResult.reason,
-          );
-        }
-
-        if (failures.length > 0) {
-          setError(
-            `Could not load ${failures.join(", ")}. Check the failed API requests and your permissions.`,
-          );
-        }
-      } else {
-        const results = await Promise.allSettled([
-          api.get("/assets/mine"),
-          api.get("/assets/requests/mine"),
-        ]);
-
-        const [assetsResult, requestsResult] = results;
-        const failures: string[] = [];
-
-        if (assetsResult.status === "fulfilled") {
-          setMyAssets(readArray<Asset>(assetsResult.value));
-        } else {
-          failures.push("your assigned assets");
-          console.error("Failed to load my assets:", assetsResult.reason);
-        }
-
-        if (requestsResult.status === "fulfilled") {
-          setRequests(readArray<AssetRequest>(requestsResult.value));
-        } else {
-          failures.push("your asset requests");
-          console.error(
-            "Failed to load my asset requests:",
-            requestsResult.reason,
-          );
-        }
-
-        if (failures.length > 0) {
-          setError(
-            `Could not load ${failures.join(" and ")}. Check the failed API requests.`,
-          );
-        }
-      }
+      await api.post("/auth/forgot-password", { email });
+      setStage("reset");
+      setInfo(
+        "If that email has an account, a 6-digit code is on its way. It expires in 10 minutes."
+      );
     } catch (err) {
-      console.error("Unexpected error loading asset operations:", err);
-      setError("Could not load asset information. Please try again.");
+      setError(errorText(err, "Could not send the code."));
     } finally {
       setLoading(false);
     }
-  }, [isManagement]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadData();
-    }, 0);
-
-    return () => window.clearTimeout(timer);
-  }, [loadData]);
-
-  const assets = isManagement ? inventory : myAssets;
-
-  const count = (status: string) =>
-    assets.filter(
-      (asset) => asset.status?.toLowerCase() === status.toLowerCase(),
-    ).length;
-
-  const pendingRequests = requests.filter((request) =>
-    ["pending", "submitted", "under_review"].includes(
-      request.status?.toLowerCase(),
-    ),
-  );
-
-  const pendingAssignments = assets.filter(
-    (asset) =>
-      Boolean(asset.assignment_pending_to_id) ||
-      asset.status?.toLowerCase() === "pending_assignment",
-  );
-
-  const maintenance = assets.filter((asset) =>
-    ["maintenance", "under_maintenance", "under_repair"].includes(
-      asset.status?.toLowerCase(),
-    ),
-  );
-
-  // The destination pages must read these query parameters to filter
-  // their displayed data.
-  const openPendingRequests = () => {
-    navigate(
-      isManagement
-        ? "/assets/requests?status=pending"
-        : "/assets/requests/mine?status=pending",
-    );
   };
 
-  const openPendingAssignments = () => {
-    navigate("/assets/assignments?status=pending_assignment");
-  };
+  const resetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
 
-  const openMaintenance = () => {
-    navigate("/assets?status=maintenance");
-  };
+    if (password !== confirm) {
+      setError("Passwords don't match.");
+      return;
+    }
 
-  const recentRequests = [...requests]
-    .sort(
-      (a, b) =>
-        new Date(b.created_at ?? 0).getTime() -
-        new Date(a.created_at ?? 0).getTime(),
-    )
-    .slice(0, 5);
+    setLoading(true);
+
+    try {
+      await api.post("/auth/reset-password", {
+        email,
+        code,
+        new_password: password,
+      });
+      setStage("done");
+    } catch (err) {
+      setError(errorText(err, "Could not reset the password."));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-full bg-slate-50 p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-7xl space-y-8">
-        <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-700 via-red-600 to-red-700 px-4">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <div className="bg-gradient-to-r from-red-800 to-red-700 px-8 py-8 flex items-center gap-4">
+          <div className="h-14 w-14 rounded-xl bg-white flex items-center justify-center text-red-700 shrink-0 shadow-md">
+            <KeyRound className="h-6 w-6" />
+          </div>
+
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-              Manage Assets
+            <h1 className="text-xl font-bold text-white">
+              Reset password
             </h1>
-
-            <p className="mt-2 text-sm text-slate-500 sm:text-base">
-              {isManagement
-                ? "Monitor company inventory, requests and assignments."
-                : "Keep track of your equipment and asset requests."}
+            <p className="text-blue-100 text-sm mt-0.5">
+              {stage === "request" && "We'll email you a 6-digit code"}
+              {stage === "reset" && "Enter the code and a new password"}
+              {stage === "done" && "All set"}
             </p>
           </div>
+        </div>
 
-          <button
-            type="button"
-            onClick={() => void loadData()}
-            disabled={loading}
-            className="inline-flex items-center justify-center gap-2 self-start rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
-          >
-            <RefreshCw
-              size={16}
-              className={loading ? "animate-spin" : ""}
-            />
-            Refresh
-          </button>
-        </header>
-
-        {error && (
-          <div
-            role="alert"
-            className="flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
-          >
-            <AlertCircle size={19} className="shrink-0" />
-            <div className="flex-1">
-              <p>{error}</p>
-              <p className="mt-1 text-xs text-amber-800">
-                Some sections may still be available.
-              </p>
-            </div>
-          </div>
-        )}
-
-        <section>
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">
-              {isManagement ? "Company Overview" : "My Asset Overview"}
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Current status at a glance.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {isManagement ? (
-              <>
-                <Metric
-                  title="Total Inventory"
-                  value={loading ? "—" : inventory.length}
-                  subtitle="Registered assets"
-                  icon={Package}
-                  color="bg-blue-50 text-blue-700"
-                  onClick={() => navigate("/assets")}
+        <div className="px-8 py-8">
+          {stage === "request" && (
+            <form onSubmit={requestCode} className="space-y-5">
+              <div>
+                <label className={labelClass}>Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your.email@example.com"
+                  className={inputClass}
                 />
-                <Metric
-                  title="Available Assets"
-                  value={loading ? "—" : count("available")}
-                  subtitle="Ready for allocation"
-                  icon={CheckCircle2}
-                  color="bg-emerald-50 text-emerald-700"
-                  onClick={() => navigate("/assets?status=available")}
-                />
-                <Metric
-                  title="Assigned Assets"
-                  value={loading ? "—" : count("assigned")}
-                  subtitle="Currently with employees"
-                  icon={Users}
-                  color="bg-indigo-50 text-indigo-700"
-                  onClick={() => navigate("/assets?status=assigned")}
-                />
-                <Metric
-                  title="Pending Requests"
-                  value={loading ? "—" : pendingRequests.length}
-                  subtitle="Awaiting review"
-                  icon={Clock}
-                  color="bg-amber-50 text-amber-700"
-                  onClick={openPendingRequests}
-                />
-              </>
-            ) : (
-              <>
-                <Metric
-                  title="My Assigned Assets"
-                  value={loading ? "—" : count("assigned")}
-                  subtitle="Equipment assigned to you"
-                  icon={Laptop}
-                  color="bg-blue-50 text-blue-700"
-                  onClick={() => navigate("/assets/mine")}
-                />
-                <Metric
-                  title="My Requests"
-                  value={loading ? "—" : requests.length}
-                  subtitle="Total submitted requests"
-                  icon={Package}
-                  color="bg-indigo-50 text-indigo-700"
-                  onClick={() => navigate("/assets/requests/mine")}
-                />
-                <Metric
-                  title="Pending Requests"
-                  value={loading ? "—" : pendingRequests.length}
-                  subtitle="Awaiting review"
-                  icon={Clock}
-                  color="bg-amber-50 text-amber-700"
-                  onClick={openPendingRequests}
-                />
-                <Metric
-                  title="Pending Invitations"
-                  value={loading ? "—" : pendingAssignments.length}
-                  subtitle="Awaiting your acceptance"
-                  icon={ClipboardCheck}
-                  color="bg-emerald-50 text-emerald-700"
-                  onClick={openPendingAssignments}
-                />
-              </>
-            )}
-          </div>
-        </section>
-
-        {isManagement && (
-          <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 bg-white p-5">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold text-slate-900">
-                    Inventory Status
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Distribution across asset statuses
-                  </p>
-                </div>
-                <Package size={21} className="text-slate-400" />
               </div>
 
-              {[
-                {
-                  label: "Available",
-                  value: count("available"),
-                  color: "bg-emerald-500",
-                  action: () => navigate("/assets?status=available"),
-                },
-                {
-                  label: "Assigned",
-                  value: count("assigned"),
-                  color: "bg-blue-500",
-                  action: () => navigate("/assets?status=assigned"),
-                },
-                {
-                  label: "Pending assignment",
-                  value: pendingAssignments.length,
-                  color: "bg-violet-500",
-                  // action: openPendingAssignments,
-                },
-                {
-                  label: "Maintenance",
-                  value: maintenance.length,
-                  color: "bg-amber-500",
-                  action: openMaintenance,
-                },
-                {
-                  label: "Retired",
-                  value: count("retired"),
-                  color: "bg-slate-400",
-                  action: () => navigate("/assets?status=retired"),
-                },
-              ].map((item) => {
-                const total = inventory.length;
-                const percentage =
-                  total > 0 ? (item.value / total) * 100 : 0;
-
-                return (
-                  <button
-                    key={item.label}
-                    type="button"
-                    onClick={item.action}
-                    className="mb-4 block w-full text-left last:mb-0"
-                  >
-                    <div className="mb-2 flex justify-between gap-3 text-sm">
-                      <span className="text-slate-600">{item.label}</span>
-                      <span className="font-medium text-slate-900">
-                        {loading ? "—" : item.value}
-                        {!loading && total > 0 &&
-                          ` · ${Math.round(percentage)}%`}
-                      </span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className={`h-full rounded-full ${item.color}`}
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white p-5">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold text-slate-900">
-                    Attention Required
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Items that may need action
-                  </p>
-                </div>
-                <AlertCircle size={21} className="text-slate-400" />
-              </div>
-
-              <button
-                type="button"
-                onClick={openPendingRequests}
-                className="flex w-full items-center justify-between gap-3 border-b border-slate-100 py-4 text-left"
-              >
-                <span className="flex items-center gap-3">
-                  <span className="rounded-lg bg-amber-50 p-2 text-amber-700">
-                    <ClipboardCheck size={19} />
-                  </span>
-                  <span>
-                    <span className="block font-medium text-slate-800">
-                      Pending requests
-                    </span>
-                    <span className="text-sm text-slate-500">
-                      Requests awaiting review
-                    </span>
-                  </span>
-                </span>
-                <span className="font-semibold text-slate-900">
-                  {loading ? "—" : pendingRequests.length}
-                  <ArrowRight size={16} className="ml-2 inline" />
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={openPendingAssignments}
-                className="flex w-full items-center justify-between gap-3 border-b border-slate-100 py-4 text-left"
-              >
-                <span className="flex items-center gap-3">
-                  <span className="rounded-lg bg-violet-50 p-2 text-violet-700">
-                    <Users size={19} />
-                  </span>
-                  <span>
-                    <span className="block font-medium text-slate-800">
-                      Pending assignments
-                    </span>
-                    <span className="text-sm text-slate-500">
-                      Awaiting employee acceptance
-                    </span>
-                  </span>
-                </span>
-                
-              </button>
-
-              <button
-                type="button"
-                onClick={openMaintenance}
-                className="flex w-full items-center justify-between gap-3 py-4 text-left"
-              >
-                <span className="flex items-center gap-3">
-                  <span className="rounded-lg bg-orange-50 p-2 text-orange-700">
-                    <Wrench size={19} />
-                  </span>
-                  <span>
-                    <span className="block font-medium text-slate-800">
-                      Maintenance
-                    </span>
-                    <span className="text-sm text-slate-500">
-                      Assets under maintenance
-                    </span>
-                  </span>
-                </span>
-                <span className="font-semibold text-slate-900">
-                  {loading ? "—" : maintenance.length}
-                  <ArrowRight size={16} className="ml-2 inline" />
-                </span>
-              </button>
-
-              {isSuperadmin && (
-                <button
-                  type="button"
-                  onClick={() => navigate("/assets/categories")}
-                  className="flex w-full items-center justify-between border-t border-slate-100 pt-4 text-left text-sm text-slate-600 hover:text-red-700"
-                >
-                  <span className="flex items-center gap-2">
-                    <FolderOpen size={18} />
-                    {categories.length} asset categories
-                  </span>
-                  <ArrowRight size={16} />
-                </button>
+              {error && (
+                <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {error}
+                </p>
               )}
-            </div>
-          </section>
-        )}
 
-        <section className="rounded-xl border border-slate-200 bg-white p-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="font-semibold text-slate-900">
-                {isManagement ? "Recent Requests" : "My Recent Requests"}
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Latest asset requests and their current status.
-              </p>
-            </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-red-600 hover:bg-blue-950 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl transition"
+              >
+                {loading ? "Sending..." : "Send code"}
+              </button>
+            </form>
+          )}
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  isManagement
-                    ? "/assets/requests"
-                    : "/assets/requests/mine",
-                )
-              }
-              className="shrink-0 text-sm font-medium text-red-700 hover:text-red-800"
-            >
-              View all
-            </button>
-          </div>
+          {stage === "reset" && (
+            <form onSubmit={resetPassword} className="space-y-5">
+              {info && (
+                <p className="text-sm text-blue-900 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                  {info}
+                </p>
+              )}
 
-          {loading ? (
-            <p className="py-8 text-center text-sm text-slate-500">
-              Loading requests…
-            </p>
-          ) : recentRequests.length === 0 ? (
-            <div className="py-8 text-center">
-              <ClipboardList
-                size={30}
-                className="mx-auto text-slate-300"
-              />
-              <p className="mt-3 font-medium text-slate-700">
-                No requests to display
-              </p>
-              <p className="mt-1 text-sm text-slate-500">
-                Requests will appear here when they are submitted.
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {recentRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium text-slate-800">
-                      {request.item_name || "Asset request"}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {request.created_at
-                        ? new Date(request.created_at).toLocaleDateString()
-                        : "Date unavailable"}
-                    </p>
-                  </div>
-                  <span
-                    className={`self-start rounded-full px-3 py-1 text-xs font-medium ${
-                      request.status === "approved"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : request.status === "rejected"
-                          ? "bg-red-50 text-red-700"
-                          : "bg-amber-50 text-amber-700"
-                    }`}
+              <div>
+                <label className={labelClass}>6-digit code</label>
+                <input
+                  required
+                  inputMode="numeric"
+                  maxLength={6}
+                  pattern="\d{6}"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className={`${inputClass} tracking-[0.4em] text-center text-lg`}
+                />
+              </div>
+
+              {/* New password */}
+              <div>
+                <label className={labelClass}>New password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={8}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`${inputClass} pr-12`}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    title={showPassword ? "Hide password" : "Show password"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-red-700 transition"
                   >
-                    {request.status.replaceAll("_", " ")}
-                  </span>
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
-              ))}
+              </div>
+
+              {/* Confirm password */}
+              <div>
+                <label className={labelClass}>Confirm new password</label>
+                <div className="relative">
+                  <input
+                    type={showConfirm ? "text" : "password"}
+                    required
+                    minLength={8}
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    className={`${inputClass} pr-12`}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((prev) => !prev)}
+                    aria-label={
+                      showConfirm
+                        ? "Hide confirmed password"
+                        : "Show confirmed password"
+                    }
+                    title={showConfirm ? "Hide password" : "Show password"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-red-700 transition"
+                  >
+                    {showConfirm ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-green-600 hover:bg-blue-950 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl transition"
+              >
+                {loading ? "Updating..." : "Update password"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => requestCode()}
+                disabled={loading}
+                className="w-full text-sm text-red-700 hover:text-red-700 font-medium"
+              >
+                Send a new code
+              </button>
+            </form>
+          )}
+
+          {stage === "done" && (
+            <div className="text-center space-y-4">
+              <CheckCircle2 className="h-12 w-12 text-emerald-600 mx-auto" />
+              <p className="text-slate-700">
+                Your password has been updated.
+              </p>
+
+              <Link
+                to="/login"
+                className="inline-block w-full bg-blue-900 hover:bg-blue-950 text-white font-semibold py-2.5 rounded-xl transition"
+              >
+                Back to sign in
+              </Link>
             </div>
           )}
-        </section>
 
-        <section className="rounded-xl border border-slate-200 bg-white p-5">
-          <div className="mb-4">
-            <h2 className="font-semibold text-slate-900">Quick Actions</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Frequently used operations.
+          {stage !== "done" && (
+            <p className="text-center mt-6">
+              <Link
+                to="/login"
+                className="text-sm text-blue-800 hover:text-red-700 font-medium"
+              >
+                Back to sign in
+              </Link>
             </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            {isSuperadmin && (
-              <button
-                type="button"
-                onClick={() => navigate("/assets/add")}
-                className="inline-flex items-center gap-2 rounded-lg bg-red-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-800"
-              >
-                <Plus size={17} />
-                Add Asset
-              </button>
-            )}
-
-            {isManagement && (
-              <button
-                type="button"
-                onClick={() => navigate("/assets")}
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
-                <Search size={17} />
-                View Inventory
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={() => navigate("/assets/mine")}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              <Laptop size={17} />
-              My Assets
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate("/assets/request")}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              <ClipboardList size={17} />
-              Request Asset
-            </button>
-          </div>
-        </section>
+          )}
+        </div>
       </div>
     </div>
   );

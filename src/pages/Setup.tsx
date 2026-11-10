@@ -125,7 +125,7 @@ export default function Setup() {
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden">
         <div className="bg-red-800 px-6 sm:px-8 py-7">
           <p className="text-xs uppercase tracking-widest text-red-400 font-semibold">
-            Redant International
+            Red Ant International
           </p>
           <h1 className="text-2xl font-bold text-white mt-1">
             Welcome{firstName ? `, ${firstName}` : ""}

@@ -123,7 +123,7 @@ export default function Login() {
         </div>
 
         <p className="text-center text-xs text-blue-100/80 mt-6">
-          © 2026 RedAnt International. All rights reserved.
+          © 2026 Red Ant International. All rights reserved.
         </p>
       </div>
     </div>
