@@ -10,14 +10,22 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useAuth } from "../context/auth";
 import api from "../lib/api";
+
+type Organisation = "red_ant" | "bella_organics" | "juakali";
 
 type Department = {
   id: string;
   name: string;
+  organisation: Organisation;
   employee_count?: number;
 };
+
+const ORGANISATIONS: { value: Organisation; label: string }[] = [
+  { value: "red_ant", label: "Red Ant" },
+  { value: "bella_organics", label: "Bella Organics" },
+  { value: "juakali", label: "Juakali" },
+];
 
 const inputClass =
   "w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-red-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white";
@@ -26,9 +34,6 @@ const cardClass =
   "rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900";
 
 export default function Departments() {
-  const { user } = useAuth();
-  const canManage = user?.role === "superadmin";
-
   const [items, setItems] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -36,6 +41,8 @@ export default function Departments() {
   const [notice, setNotice] = useState("");
   const [editing, setEditing] = useState<Department | null>(null);
   const [name, setName] = useState("");
+  const [organisation, setOrganisation] =
+    useState<Organisation>("red_ant");
   const [showForm, setShowForm] = useState(false);
 
   const load = useCallback(async () => {
@@ -62,6 +69,7 @@ export default function Departments() {
   function openCreate() {
     setEditing(null);
     setName("");
+    setOrganisation("red_ant");
     setError("");
     setNotice("");
     setShowForm(true);
@@ -70,55 +78,62 @@ export default function Departments() {
   function openEdit(item: Department) {
     setEditing(item);
     setName(item.name);
+    setOrganisation(item.organisation);
     setError("");
     setNotice("");
     setShowForm(true);
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
-  event.preventDefault();
+    event.preventDefault();
 
-  setSaving(true);
-  setError("");
-  setNotice("");
-
-  try {
-    const successMessage = editing
-      ? "Department updated."
-      : "Department created.";
-
-    if (editing) {
-      await api.patch(`/departments/${editing.id}`, {
-        name: name.trim(),
-      });
-    } else {
-      await api.post("/departments/", {
-        name: name.trim(),
-      });
+    if (!name.trim()) {
+      setError("Enter a department name.");
+      return;
     }
 
-    setShowForm(false);
-    setEditing(null);
-    setName("");
-    setNotice(successMessage);
+    setSaving(true);
+    setError("");
+    setNotice("");
 
-    await load();
+    try {
+      const payload = {
+        name: name.trim(),
+        organisation,
+      };
 
-    window.setTimeout(() => {
-      setNotice((current) =>
-        current === successMessage ? "" : current,
+      const successMessage = editing
+        ? "Department updated."
+        : "Department created.";
+
+      if (editing) {
+        await api.patch(`/departments/${editing.id}`, payload);
+      } else {
+        await api.post("/departments/", payload);
+      }
+
+      setShowForm(false);
+      setEditing(null);
+      setName("");
+      setOrganisation("red_ant");
+      setNotice(successMessage);
+
+      await load();
+
+      window.setTimeout(() => {
+        setNotice((current) =>
+          current === successMessage ? "" : current,
+        );
+      }, 4000);
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.detail ??
+          "Could not save this department.",
       );
-    }, 4000);
-  } catch (err: any) {
-    setError(
-      err?.response?.data?.detail ??
-        "Could not save this department.",
-    );
-  } finally {
-    setSaving(false);
+    } finally {
+      setSaving(false);
+    }
   }
-}
-
 
   async function remove(item: Department) {
     const confirmed = window.confirm(
@@ -154,17 +169,20 @@ export default function Departments() {
             <p className="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">
               Organisation
             </p>
+
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
               Departments
             </h1>
+
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              View departments and their active employee counts.
+              View and manage departments across organisations.
             </p>
           </div>
         </div>
 
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={() => void load()}
             disabled={loading}
             className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold dark:border-slate-700"
@@ -175,15 +193,14 @@ export default function Departments() {
             Refresh
           </button>
 
-          {canManage && (
-            <button
-              onClick={openCreate}
-              className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
-            >
-              <Plus className="h-4 w-4" />
-              Add department
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={openCreate}
+            className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
+          >
+            <Plus className="h-4 w-4" />
+            Add department
+          </button>
         </div>
       </header>
 
@@ -205,7 +222,7 @@ export default function Departments() {
         </p>
       )}
 
-      {showForm && canManage && (
+      {showForm && (
         <form onSubmit={submit} className={`${cardClass} space-y-4`}>
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-slate-900 dark:text-white">
@@ -229,15 +246,34 @@ export default function Departments() {
               onChange={(event) => setName(event.target.value)}
               required
               minLength={2}
-              maxLength={120}
+              maxLength={100}
               placeholder="e.g. Human Resources"
             />
           </label>
 
+          <label className="block space-y-1.5 text-sm font-medium">
+            Organisation
+            <select
+              className={inputClass}
+              value={organisation}
+              onChange={(event) =>
+                setOrganisation(event.target.value as Organisation)
+              }
+              required
+            >
+              {ORGANISATIONS.map((org) => (
+                <option key={org.value} value={org.value}>
+                  {org.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <div className="flex flex-wrap gap-2">
             <button
+              type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
             >
               {saving && (
                 <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -266,7 +302,11 @@ export default function Departments() {
       ) : items.length === 0 ? (
         <div className={`${cardClass} py-12 text-center`}>
           <Building2 className="mx-auto h-8 w-8 text-slate-400" />
-          <h2 className="mt-3 font-semibold">No departments found</h2>
+
+          <h2 className="mt-3 font-semibold">
+            No departments found
+          </h2>
+
           <p className="mt-1 text-sm text-slate-500">
             Create a department to organise employee records.
           </p>
@@ -281,30 +321,38 @@ export default function Departments() {
                     <Building2 className="h-5 w-5" />
                   </div>
 
-                  <h2 className="break-words font-semibold text-slate-900 dark:text-white">
-                    {item.name}
-                  </h2>
+                  <div className="min-w-0">
+                    <h2 className="break-words font-semibold text-slate-900 dark:text-white">
+                      {item.name}
+                    </h2>
+
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {ORGANISATIONS.find(
+                        (org) => org.value === item.organisation,
+                      )?.label ?? item.organisation}
+                    </p>
+                  </div>
                 </div>
 
-                {canManage && (
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => openEdit(item)}
-                      title="Edit department"
-                      className="rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(item)}
+                    title="Edit department"
+                    className="rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
 
-                    <button
-                      onClick={() => void remove(item)}
-                      title="Delete department"
-                      className="rounded-lg p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => void remove(item)}
+                    title="Delete department"
+                    className="rounded-lg p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="mt-5 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">

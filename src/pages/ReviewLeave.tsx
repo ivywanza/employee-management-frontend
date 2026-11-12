@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { ClipboardCheck } from "lucide-react";
 import api from "../lib/api";
+import { useAuth } from "../context/auth";
 
 type LeaveStatus = "pending" | "approved" | "rejected" | "under-review";
 
@@ -73,6 +74,11 @@ function StatusBadge({ status }: { status: LeaveStatus }) {
 }
 
 export default function ReviewLeave() {
+  const { user, profile } = useAuth();
+
+  // Use the authenticated user ID to identify their own leave requests.
+  const currentUserId = user?.id || profile?.id;
+
   const [items, setItems] = useState<LeaveItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -83,7 +89,12 @@ export default function ReviewLeave() {
     (async () => {
       try {
         const res = await api.get<LeaveItem[]>("/leave-requests/");
-        if (!cancelled) setItems(res.data);
+
+        if (!cancelled) {
+          setItems(res.data);
+        }
+      } catch (error) {
+        console.error("Failed to load leave requests:", error);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -108,10 +119,23 @@ export default function ReviewLeave() {
       setItems((prev) =>
         prev.map((item) => (item.id === id ? { ...item, status } : item))
       );
+    } catch (error) {
+      console.error("Failed to review leave request:", error);
     } finally {
       setBusyId(null);
     }
   };
+
+  // HR should not see their own requests in the review table.
+  const isHr = profile?.role === "hr" || user?.role === "hr";
+
+  const visibleItems = items.filter((item) => {
+    if (isHr && item.user_id === currentUserId) {
+      return false;
+    }
+
+    return true;
+  });
 
   return (
     <div className="max-w-full mx-auto">
@@ -144,7 +168,8 @@ export default function ReviewLeave() {
           </div>
 
           <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">
-            {items.length} {items.length === 1 ? "Request" : "Requests"}
+            {visibleItems.length}{" "}
+            {visibleItems.length === 1 ? "Request" : "Requests"}
           </span>
         </div>
 
@@ -152,9 +177,9 @@ export default function ReviewLeave() {
           <p className="p-6 text-sm text-slate-500 dark:text-slate-400">
             Loading leave requests...
           </p>
-        ) : items.length === 0 ? (
+        ) : visibleItems.length === 0 ? (
           <p className="p-8 text-sm text-center text-slate-500 dark:text-slate-400">
-            No leave requests yet.
+            No leave requests to review.
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -175,113 +200,121 @@ export default function ReviewLeave() {
               </thead>
 
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {items.map((item, index) => (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
-                  >
-                    <td className="px-4 py-4 font-medium text-slate-500 dark:text-slate-400">
-                      {index + 1}
-                    </td>
+                {visibleItems.map((item, index) => {
+                  const isOwnRequest = item.user_id === currentUserId;
 
-                    <td className="px-4 py-4">
-                      <p className="font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                        {item.applicant_name || "Name unavailable"}
-                      </p>
-                      {item.reason && (
-                        <p
-                          className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-[180px] truncate"
-                          title={item.reason}
-                        >
-                          {item.reason}
+                  // No user can review their own leave request.
+                  const canReview = !isOwnRequest;
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                    >
+                      <td className="px-4 py-4 font-medium text-slate-500 dark:text-slate-400">
+                        {index + 1}
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <p className="font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                          {item.applicant_name || "Name unavailable"}
                         </p>
-                      )}
-                    </td>
-
-                    <td className="px-4 py-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                      {item.department || "Not specified"}
-                    </td>
-
-                    <td className="px-4 py-4 text-slate-700 dark:text-slate-200 capitalize whitespace-nowrap">
-                      {item.leave_type}
-                    </td>
-
-                    <td className="px-4 py-4 text-slate-700 dark:text-slate-200 whitespace-nowrap">
-                      {item.days} {item.days === 1 ? "Day" : "Days"}
-                    </td>
-
-                    <td className="px-4 py-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                      {formatDate(item.start_date)}
-                    </td>
-
-                    <td className="px-4 py-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                      {formatDate(item.end_date)}
-                    </td>
-
-                    <td className="px-4 py-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                      {formatDate(item.submitted_at, true)}
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <StatusBadge status={item.status} />
-                    </td>
-
-                    <td className="px-4 py-4">
-                      {item.status === "pending" ||
-                      item.status === "under-review" ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() =>
-                              reviewLeave(item.id, "under-review")
-                            }
-                            disabled={
-                              busyId === item.id ||
-                              item.status === "under-review"
-                            }
-                            title="Mark as under review"
-                            className="text-xs font-semibold px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white transition whitespace-nowrap"
+                        {item.reason && (
+                          <p
+                            className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-[180px] truncate"
+                            title={item.reason}
                           >
-                            {busyId === item.id
-                              ? "Saving..."
-                              : "Under Review"}
-                          </button>
+                            {item.reason}
+                          </p>
+                        )}
+                      </td>
 
-                          <button
-                            onClick={() => reviewLeave(item.id, "approved")}
-                            disabled={busyId === item.id}
-                            title="Approve leave request"
-                            className="text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white transition"
-                          >
-                            Approve
-                          </button>
+                      <td className="px-4 py-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        {item.department || "Not specified"}
+                      </td>
 
-                          <button
-                            onClick={() => reviewLeave(item.id, "rejected")}
-                            disabled={busyId === item.id}
-                            title="Reject leave request"
-                            className="text-xs font-semibold px-3 py-2 rounded-lg bg-red-700 hover:bg-red-800 disabled:opacity-50 text-white transition"
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      ) : (
-                        <span className="block text-center text-xs text-slate-400 dark:text-slate-500">
-                          No actions
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                      <td className="px-4 py-4 text-slate-700 dark:text-slate-200 capitalize whitespace-nowrap">
+                        {item.leave_type}
+                      </td>
+
+                      <td className="px-4 py-4 text-slate-700 dark:text-slate-200 whitespace-nowrap">
+                        {item.days} {item.days === 1 ? "Day" : "Days"}
+                      </td>
+
+                      <td className="px-4 py-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        {formatDate(item.start_date)}
+                      </td>
+
+                      <td className="px-4 py-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        {formatDate(item.end_date)}
+                      </td>
+
+                      <td className="px-4 py-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        {formatDate(item.submitted_at, true)}
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <StatusBadge status={item.status} />
+                      </td>
+
+                      <td className="px-4 py-4">
+                        {canReview &&
+                        (item.status === "pending" ||
+                          item.status === "under-review") ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() =>
+                                reviewLeave(item.id, "under-review")
+                              }
+                              disabled={
+                                busyId === item.id ||
+                                item.status === "under-review"
+                              }
+                              title="Mark as under review"
+                              className="text-xs font-semibold px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white transition whitespace-nowrap"
+                            >
+                              {busyId === item.id
+                                ? "Saving..."
+                                : "Under Review"}
+                            </button>
+
+                            <button
+                              onClick={() => reviewLeave(item.id, "approved")}
+                              disabled={busyId === item.id}
+                              title="Approve leave request"
+                              className="text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white transition"
+                            >
+                              Approve
+                            </button>
+
+                            <button
+                              onClick={() => reviewLeave(item.id, "rejected")}
+                              disabled={busyId === item.id}
+                              title="Reject leave request"
+                              className="text-xs font-semibold px-3 py-2 rounded-lg bg-red-700 hover:bg-red-800 disabled:opacity-50 text-white transition"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="block text-center text-xs text-slate-400 dark:text-slate-500">
+                            No actions
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
 
-        {!loading && items.length > 0 && (
+        {!loading && visibleItems.length > 0 && (
           <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Showing {items.length} leave{" "}
-              {items.length === 1 ? "request" : "requests"}
+              Showing {visibleItems.length} leave{" "}
+              {visibleItems.length === 1 ? "request" : "requests"}
             </p>
           </div>
         )}

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { FileCheck, Eye } from "lucide-react";
 import api from "../lib/api";
@@ -8,6 +7,8 @@ interface OnboardingItem {
   document_type: string | null;
   reviewed: boolean;
   uploaded_at: string;
+  organisation: string | null;
+  applicant_name: string | null;
 }
 
 function formatDate(value: string) {
@@ -49,7 +50,7 @@ export default function ReviewOnboarding() {
 
   const viewDocument = async (id: string) => {
     const res = await api.get<{ url: string }>(
-      `/onboarding-documents/${id}/url`
+      `/onboarding-documents/${id}/url`,
     );
     window.open(res.data.url, "_blank", "noopener,noreferrer");
   };
@@ -62,8 +63,8 @@ export default function ReviewOnboarding() {
 
       setItems((prev) =>
         prev.map((item) =>
-          item.id === id ? { ...item, reviewed: true } : item
-        )
+          item.id === id ? { ...item, reviewed: true } : item,
+        ),
       );
     } finally {
       setBusyId(null);
@@ -119,7 +120,9 @@ export default function ReviewOnboarding() {
               <thead className="bg-slate-50 dark:bg-slate-800/70 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 <tr>
                   <th className="px-5 py-4 font-semibold w-16">S/No.</th>
+                  <th className="px-5 py-4 font-semibold">Associate name</th>
                   <th className="px-5 py-4 font-semibold">Document Type</th>
+                  <th className="px-5 py-4 font-semibold">Organisation</th>
                   <th className="px-5 py-4 font-semibold">Date Uploaded</th>
                   <th className="px-5 py-4 font-semibold">Review Status</th>
                   <th className="px-5 py-4 font-semibold text-center">
@@ -137,11 +140,27 @@ export default function ReviewOnboarding() {
                     <td className="px-5 py-4 font-medium text-slate-500 dark:text-slate-400">
                       {index + 1}
                     </td>
+                    <td className="px-5 py-4">
+                      <p className="font-semibold text-slate-800 dark:text-slate-100">
+                        {item.applicant_name || "Unknown employee"}
+                      </p>
+                    </td>
 
                     <td className="px-5 py-4">
                       <p className="font-semibold text-slate-800 dark:text-slate-100">
                         {item.document_type || "Document"}
                       </p>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="font-medium text-slate-700 dark:text-slate-200">
+                        {item.organisation === "red_ant"
+                          ? "Red Ant"
+                          : item.organisation === "bella_organics"
+                            ? "Bella Organics"
+                            : item.organisation === "juakali"
+                              ? "Juakali"
+                              : "Unknown"}
+                      </span>
                     </td>
 
                     <td className="px-5 py-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">

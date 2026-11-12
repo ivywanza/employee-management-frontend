@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -99,10 +100,36 @@ export default function Home() {
   const [stats, setStats] = useState<Stats>({});
   const [now] = useState(() => new Date());
 
+  // Determine the organisation from the authenticated employee profile.
+  const organisation = profile?.organisation ?? "red_ant";
+
+  const isBella = organisation === "bella_organics";
+  const isJuakali = organisation === "juakali";
+
+  // Organisation-specific banner colours.
+  const bannerColour = isBella
+    ? "bg-emerald-800"
+    : isJuakali
+      ? "bg-red-800"
+      : "bg-red-700";
+
+  // Display the correct organisation name.
+  const organisationName = isBella
+    ? "Bella Organics"
+    : isJuakali
+      ? "Juakali"
+      : "RedAnt";
+
   useEffect(() => {
     if (!profile) return;
-    const isAdmin = profile.role === "admin" || profile.role === "superadmin";
-    const canReview = profile.role === "superadmin" || profile.isHr;
+
+    const isAdmin =
+      profile.role === "admin" ||
+      profile.role === "superadmin";
+
+    const canReview =
+      profile.role === "superadmin" ||
+      profile.isHr === true;
 
     (async () => {
       try {
@@ -110,6 +137,7 @@ export default function Home() {
           api.get<LeaveItem[]>("/leave-requests/mine"),
           api.get<OnboardingItem[]>("/onboarding-documents/mine"),
         ]);
+
         const items: Submission[] = [
           ...leave.data.map((l) => ({
             key: `leave-${l.id}`,
@@ -125,31 +153,41 @@ export default function Home() {
           })),
         ]
           .sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+            (a, b) =>
+              new Date(b.date).getTime() -
+              new Date(a.date).getTime(),
           )
           .slice(0, 5);
+
         setSubmissions(items);
       } catch {
         setSubmissions([]);
       }
 
       const next: Stats = {};
+
       if (isAdmin) {
         try {
-          next.employees = (await api.get<unknown[]>("/users/")).data.length;
+          next.employees = (
+            await api.get<unknown[]>("/users/")
+          ).data.length;
         } catch {
           /* leave undefined */
         }
       }
+
       if (canReview) {
         try {
           const leave = await api.get<LeaveItem[]>("/leave-requests/");
+
           next.pendingLeave = leave.data.filter(
             (l) => l.status === "pending",
           ).length;
+
           const onboarding = await api.get<OnboardingItem[]>(
             "/onboarding-documents/",
           );
+
           next.pendingOnboarding = onboarding.data.filter(
             (o) => !o.reviewed,
           ).length;
@@ -157,22 +195,39 @@ export default function Home() {
           /* leave undefined */
         }
       }
+
       setStats(next);
     })();
   }, [profile]);
 
-  if (!profile)
-    return <p className="text-slate-500 dark:text-slate-400">Loading...</p>;
+  if (!profile) {
+    return (
+      <p className="text-slate-500 dark:text-slate-400">
+        Loading...
+      </p>
+    );
+  }
 
-  const start = new Date(profile.start_date.slice(0, 10) + "T00:00:00");
+  const start = new Date(
+    profile.start_date.slice(0, 10) + "T00:00:00",
+  );
+
   const daysEmployed = Math.max(
     0,
-    Math.floor((now.getTime() - start.getTime()) / 86400000),
+    Math.floor(
+      (now.getTime() - start.getTime()) / 86400000,
+    ),
   );
 
   const hour = now.getHours();
+
   const greeting =
-    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+    hour < 12
+      ? "Good morning"
+      : hour < 18
+        ? "Good afternoon"
+        : "Good evening";
+
   const today = now.toLocaleDateString(undefined, {
     weekday: "long",
     day: "numeric",
@@ -187,25 +242,35 @@ export default function Home() {
 
   return (
     <div className="max-w-5xl space-y-8">
-      <section className="rounded-3xl bg-red-700 p-8 text-white shadow-lg flex flex-wrap items-center justify-between gap-6">
+      {/* Organisation-specific welcome banner */}
+      <section
+        className={`rounded-3xl ${bannerColour} p-8 text-white shadow-lg flex flex-wrap items-center justify-between gap-6`}
+      >
         <div>
-          <p className="text-sm text-emerald-100">{today}</p>
+          <p className="text-sm text-white/90">
+            {today}
+          </p>
+
           <h1 className="text-3xl font-bold mt-1">
             {greeting}, {profile.full_name.split(" ")[0]}
           </h1>
-          <p className="text-emerald-100 mt-2 text-sm">
+
+          <p className="text-white/90 mt-2 text-sm">
             <span>DEPARTMENT : </span>
-            {profile.department_name ?? "No department yet"} {" "}
+            {profile.department_name ?? "No department yet"}
           </p>
         </div>
+
         <div className="rounded-2xl bg-white/15 backdrop-blur px-6 py-4 text-center">
-          <p className="text-xs uppercase tracking-wide text-emerald-50">
-            Days with RedAnt
+          <p className="text-xs uppercase tracking-wide text-white/90">
+            Days with {organisationName}
           </p>
+
           <p className="text-5xl font-extrabold text-amber-300 leading-tight">
             {daysEmployed}
           </p>
-          <p className="text-xs text-emerald-50">
+
+          <p className="text-xs text-white/90">
             Since{" "}
             {start.toLocaleDateString(undefined, {
               day: "numeric",
@@ -225,6 +290,7 @@ export default function Home() {
               icon={Users}
             />
           )}
+
           {stats.pendingLeave !== undefined && (
             <StatCard
               label="Leave awaiting review"
@@ -232,6 +298,7 @@ export default function Home() {
               icon={Clock}
             />
           )}
+
           {stats.pendingOnboarding !== undefined && (
             <StatCard
               label="Onboarding docs to review"
@@ -246,6 +313,7 @@ export default function Home() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">
           Quick actions
         </h2>
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {quickActions.map(({ to, label, note, icon: Icon }) => (
             <Link
@@ -256,9 +324,11 @@ export default function Home() {
               <div className="h-11 w-11 rounded-xl bg-amber-100 dark:bg-amber-400/20 text-red-600 dark:text-amber-300 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-emerald-950 transition">
                 <Icon className="h-5 w-5" />
               </div>
+
               <p className="mt-4 font-semibold text-slate-800 dark:text-slate-100">
                 {label}
               </p>
+
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {note}
               </p>
@@ -271,6 +341,7 @@ export default function Home() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">
           My recent submissions
         </h2>
+
         <div className="rounded-2xl bg-white dark:bg-slate-900 shadow-sm divide-y divide-slate-100 dark:divide-slate-800">
           {submissions.length === 0 ? (
             <p className="p-6 text-sm text-slate-500 dark:text-slate-400">
@@ -287,6 +358,7 @@ export default function Home() {
                   <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
                     {s.title}
                   </p>
+
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {new Date(s.date).toLocaleDateString(undefined, {
                       day: "numeric",
@@ -295,6 +367,7 @@ export default function Home() {
                     })}
                   </p>
                 </div>
+
                 <span
                   className={`text-xs font-semibold px-3 py-1 rounded-full ${
                     s.reviewed

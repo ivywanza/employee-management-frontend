@@ -31,7 +31,8 @@ import { useAuth } from "../context/auth";
 import { useTheme } from "../lib/theme";
 import api from "../lib/api";
 
-type Role = "employee" | "admin" | "superadmin";
+type Role = "employee" | "admin" | "hr" | "superadmin";
+type Organisation = "red_ant" | "bella_organics" | "juakali";
 
 interface NavItem {
   to: string;
@@ -58,23 +59,17 @@ interface PortalNotification {
 
 const COLLAPSE_KEY = "sidebar_collapsed";
 
-const ALL_ROLES: Role[] = ["employee", "admin", "superadmin"];
-const ADMIN_ROLES: Role[] = ["admin", "superadmin"];
+const ALL_ROLES: Role[] = ["employee", "admin", "hr", "superadmin"];
+const ADMIN_ROLES: Role[] = ["admin", "hr", "superadmin"];
 const MANAGEMENT_ROLES: Role[] = ["superadmin"];
-const REVIEW_ROLES: Role[] = ["admin", "superadmin"];
 
-const tabs: NavItem[] = [
-  { to: "/", label: "Home", icon: LayoutDashboard },
-  { to: "/messages", label: "Messages", icon: MessageSquare },
-  { to: "/leave", label: "Leave", icon: CalendarDays },
-  { to: "/documents", label: "Documents", icon: FolderOpen },
-];
-
-const tabClass = (active: boolean) =>
+// HR can review leave, but cannot approve requisitions or review sales.
+const LEAVE_REVIEW_ROLES: Role[] = ["hr", "superadmin"];
+const REQUISITION_REVIEW_ROLES: Role[] = ["admin", "superadmin"];
+const SALES_REVIEW_ROLES: Role[] = ["admin", "hr", "superadmin"];
+const tabClass = (active: boolean, activeColour: string) =>
   `w-full flex flex-col items-center justify-center gap-0.5 py-2 transition ${
-    active
-      ? "text-red-600 dark:text-red-400"
-      : "text-slate-500 dark:text-slate-400"
+    active ? activeColour : "text-slate-500 dark:text-slate-400"
   }`;
 
 export default function DashboardLayout() {
@@ -90,7 +85,6 @@ export default function DashboardLayout() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
   const [notificationOpen, setNotificationOpen] = useState(false);
-
   const [notifications, setNotifications] = useState<PortalNotification[]>([]);
 
   const [liveNotice, setLiveNotice] = useState<{
@@ -100,8 +94,67 @@ export default function DashboardLayout() {
   } | null>(null);
 
   const role = user?.role as Role | undefined;
-  const isAdmin = role === "admin" || role === "superadmin";
-  const canReview = role === "superadmin" || profile?.isHr === true;
+  const organisation = (profile?.organisation ?? "red_ant") as Organisation;
+
+  const isAdmin = role === "admin" || role === "hr" || role === "superadmin";
+
+  const canReviewLeave =
+    role === "hr" || role === "superadmin" || profile?.isHr === true;
+
+  const isBella = organisation === "bella_organics";
+
+  // Document features are exclusive to Red Ant.
+ // Only Red Ant has the Document Hub.
+const hasDocumentHub = organisation === "red_ant";
+
+// All organisations have onboarding documents.
+const hasOnboardingDocuments = true;
+
+  // Organisation-specific identity and colour scheme.
+  const branding = {
+    red_ant: {
+      name: "RedAnt Portal",
+      logo: "/RedantLogo.webp",
+      logoAlt: "Red Ant International",
+      sidebar: "bg-gradient-to-b from-red-700 via-red-700 to-red-600",
+      activeText: "text-red-600 dark:text-red-400",
+      activeBackground: "bg-red-600",
+      activeHover: "hover:text-red-700 dark:hover:text-red-400",
+      notificationText: "text-red-700 dark:text-red-400",
+      notificationBackground: "bg-red-600",
+      notificationTint: "bg-red-50/50 dark:bg-red-950/20",
+      avatar: "from-blue-800 to-red-600",
+      logoBackground: "bg-white text-red-700",
+    },
+    bella_organics: {
+      name: "Bella Organics",
+      logo: "/BellaLogo.png",
+      logoAlt: "Bella Organics",
+      sidebar: "bg-green-700",
+      activeText: "text-emerald-600 dark:text-emerald-400",
+      activeBackground: "bg-emerald-600",
+      activeHover: "hover:text-emerald-700 dark:hover:text-emerald-400",
+      notificationText: "text-emerald-700 dark:text-emerald-400",
+      notificationBackground: "bg-emerald-600",
+      notificationTint: "bg-emerald-50/50 dark:bg-emerald-950/20",
+      avatar: "from-emerald-700 to-green-500",
+      logoBackground: "bg-white text-emerald-800",
+    },
+    juakali: {
+      name: "Juakali",
+      logo: "",
+      logoAlt: "Jk",
+      sidebar: "bg-red-700",
+      activeText: "text-sky-600 dark:text-sky-400",
+      activeBackground: "bg-sky-600",
+      activeHover: "hover:text-sky-700 dark:hover:text-sky-400",
+      notificationText: "text-sky-700 dark:text-sky-400",
+      notificationBackground: "bg-sky-600",
+      notificationTint: "bg-sky-50/50 dark:bg-sky-950/20",
+      avatar: "from-slate-800 to-sky-700",
+      logoBackground: "bg-white text-slate-900",
+    },
+  }[organisation];
 
   const unreadCount = notifications.filter(
     (notification) => !notification.read,
@@ -109,34 +162,88 @@ export default function DashboardLayout() {
 
   const displayCount = unreadCount > 99 ? "99+" : unreadCount;
 
+  // Main navigation available to all employees.
   const everyone: NavItem[] = [
-    { to: "/", label: "Home", icon: LayoutDashboard },
-    {
-  to: "/leave",
-  label: "Apply for Leave",
-  icon: CalendarDays,
-  roles: ["employee", "admin"],
-},
+  { to: "/", label: "Home", icon: LayoutDashboard },
+  { to: "/leave", label: "Apply for Leave", icon: CalendarDays },
 
-    { to: "/documents", label: "Document Hub", icon: FolderOpen },
-    { to: "/onboarding", label: "Onboarding Documents", icon: FileText },
-    { to: "/my-submissions", label: "My Submissions", icon: ClipboardCheck },
-  ];
+  ...(hasDocumentHub
+    ? [
+        { to: "/documents", label: "Document Hub", icon: FolderOpen },
+        {
+          to: "/my-submissions",
+          label: "My Submissions",
+          icon: ClipboardCheck,
+        },
+      ]
+    : []),
 
-  const adminItems: NavItem[] = [
-    { to: "/add-associate", label: "Add Associate", icon: UserPlus },
-    { to: "/associates", label: "Associates List", icon: Users },
-    { to: "/manage-documents", label: "Manage Documents", icon: FolderOpen },
-  ];
+  ...(hasOnboardingDocuments
+    ? [
+        {
+          to: "/onboarding",
+          label: "Onboarding Documents",
+          icon: FileText,
+        },
+      ]
+    : []),
 
-  const reviewItems: NavItem[] = [
-    { to: "/review-leave", label: "Review Leave", icon: ClipboardCheck },
-    {
-      to: "/review-onboarding",
-      label: "Review Onboarding",
-      icon: FileText,
-    },
-  ];
+  ...(isBella
+    ? [
+        {
+          to: "/monthly-sales",
+          label: "Monthly Sales",
+          icon: ShoppingCart,
+        },
+      ]
+    : []),
+];
+  // General management navigation.
+  
+const adminItems: NavItem[] = [
+  { to: "/add-associate", label: "Add Associate", icon: UserPlus },
+  { to: "/associates", label: "Associates List", icon: Users },
+
+  ...(hasDocumentHub
+    ? [
+        {
+          to: "/manage-documents",
+          label: "Manage Documents",
+          icon: FolderOpen,
+        },
+      ]
+    : []),
+
+  
+];
+
+
+  
+const reviewItems: NavItem[] = [
+  {
+    to: "/review-leave",
+    label: "Review Leave",
+    icon: ClipboardCheck,
+    roles: LEAVE_REVIEW_ROLES,
+  },
+  {
+    to: "/monthly-sales/review",
+    label: "Review Sales",
+    icon: ShoppingCart,
+    roles: SALES_REVIEW_ROLES,
+  },
+  ...(hasDocumentHub
+    ? [
+        {
+          to: "/review-onboarding",
+          label: "Review Onboarding",
+          icon: FileText,
+          roles: ADMIN_ROLES,
+        },
+      ]
+    : []),
+];
+
 
   const groups: NavGroup[] = [
     {
@@ -144,12 +251,6 @@ export default function DashboardLayout() {
       icon: Building2,
       roles: ADMIN_ROLES,
       items: [
-        // {
-        //   to: "/departments",
-        //   label: "View Departments",
-        //   icon: Building2,
-        //   roles: ADMIN_ROLES,
-        // },
         {
           to: "/departments/manage",
           label: "Manage Departments",
@@ -166,7 +267,7 @@ export default function DashboardLayout() {
           to: "/grievances/submit",
           label: "Submit Grievance",
           icon: MessageSquareWarning,
-          roles: ["employee", "admin"],
+          roles: ALL_ROLES,
         },
         {
           to: "/grievances/inbox",
@@ -184,7 +285,7 @@ export default function DashboardLayout() {
           to: "/assets",
           label: "View Assets",
           icon: Package,
-          roles: REVIEW_ROLES,
+          roles: ADMIN_ROLES,
         },
         {
           to: "/assets/mine",
@@ -226,10 +327,21 @@ export default function DashboardLayout() {
           to: "/requisitions",
           label: "View Requisitions",
           icon: FolderOpen,
-          roles: REVIEW_ROLES,
+          roles: REQUISITION_REVIEW_ROLES,
         },
       ],
     },
+  ];
+
+  const tabs: NavItem[] = [
+    { to: "/", label: "Home", icon: LayoutDashboard },
+    { to: "/messages", label: "Messages", icon: MessageSquare },
+    { to: "/leave", label: "Leave", icon: CalendarDays },
+    ...(hasDocumentHub
+      ? [{ to: "/documents", label: "Documents", icon: FolderOpen }]
+      : isBella
+        ? [{ to: "/monthly-sales", label: "Sales", icon: ShoppingCart }]
+        : []),
   ];
 
   const toggleCollapsed = () => {
@@ -262,6 +374,7 @@ export default function DashboardLayout() {
         if (cancelled) return;
 
         const rows = Array.isArray(response.data) ? response.data : [];
+
         const readIds: string[] = JSON.parse(
           localStorage.getItem(`portal_notifications_read_${user.id}`) || "[]",
         );
@@ -375,8 +488,12 @@ export default function DashboardLayout() {
         (!group.roles || (role && group.roles.includes(role))),
     );
 
-  const isPathActive = (to: string) =>
-    to === "/" ? pathname === "/" : pathname.startsWith(to);
+  // Exact matching prevents a parent route from activating a different child.
+  const isPathActive = (to: string) => {
+    const currentPath = pathname.replace(/\/+$/, "") || "/";
+    const targetPath = to.replace(/\/+$/, "") || "/";
+    return currentPath === targetPath;
+  };
 
   const groupIsActive = (group: NavGroup) =>
     group.items.some((item) => isPathActive(item.to));
@@ -399,15 +516,15 @@ export default function DashboardLayout() {
       <NavLink
         key={to}
         to={to}
-        end={to === "/"}
+        end
         title={collapsed ? label : undefined}
         className={({ isActive }) =>
-          `flex items-center gap-3 rounded-xl text-md font-medium transition ${
+          `flex items-center gap-3 rounded-xl text-sm font-medium transition ${
             collapsed ? "justify-center py-3" : "px-4 py-2.5"
           } ${
             isActive
-              ? "bg-white text-emerald-950 shadow border-2 border-red-800"
-              : "text-white hover:bg-white/10"
+              ? "bg-white text-slate-900 shadow border-2 border-white"
+              : "text-white/90 hover:bg-white/10"
           }`
         }
       >
@@ -419,6 +536,9 @@ export default function DashboardLayout() {
   const sidebarGroups = (items: NavGroup[]) =>
     items.map((group) => {
       const Icon = group.icon;
+
+      // A group can open automatically when one of its children is selected.
+      // Opening a group does not make the group heading active.
       const open = expandedGroups.includes(group.label) || groupIsActive(group);
 
       return (
@@ -440,9 +560,9 @@ export default function DashboardLayout() {
               }
             }}
             aria-expanded={open}
-            className={`w-full flex items-center gap-3 rounded-xl text-sm font-medium text-blue-100/90 hover:bg-white/10 transition ${
+            className={`w-full flex items-center gap-3 rounded-xl text-sm font-medium text-white/90 hover:bg-white/10 transition ${
               collapsed ? "justify-center py-3" : "px-4 py-2.5"
-            } ${groupIsActive(group) ? "bg-white/10 text-white" : ""}`}
+            }`}
           >
             <Icon className="h-4 w-4 shrink-0" />
             {!collapsed && (
@@ -463,12 +583,13 @@ export default function DashboardLayout() {
                 <NavLink
                   key={to}
                   to={to}
+                  end
                   onClick={() => setMoreOpen(false)}
                   className={({ isActive }) =>
                     `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
                       isActive
-                        ? "bg-white text-emerald-950 shadow"
-                        : "text-blue-100/90 hover:bg-white/10"
+                        ? "bg-white text-slate-900 shadow"
+                        : "text-white/90 hover:bg-white/10"
                     }`
                   }
                 >
@@ -486,7 +607,7 @@ export default function DashboardLayout() {
     collapsed ? (
       <div className="my-3 border-t border-white/10" />
     ) : (
-      <p className="px-4 pt-5 pb-1 text-xs uppercase tracking-wide text-blue-300/80">
+      <p className="px-4 pt-5 pb-1 text-xs uppercase tracking-wide text-white/60">
         {label}
       </p>
     );
@@ -497,12 +618,12 @@ export default function DashboardLayout() {
         <NavLink
           key={to}
           to={to}
-          end={to === "/"}
+          end
           onClick={() => setMoreOpen(false)}
           className={({ isActive }) =>
             `flex flex-col items-center gap-2 rounded-2xl p-3 text-center text-xs font-medium ${
               isActive
-                ? "bg-red-600 text-white"
+                ? `${branding.activeBackground} text-white`
                 : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
             }`
           }
@@ -547,11 +668,12 @@ export default function DashboardLayout() {
                   <NavLink
                     key={to}
                     to={to}
+                    end
                     onClick={() => setMoreOpen(false)}
                     className={({ isActive }) =>
                       `flex items-center gap-2 rounded-xl p-3 text-sm ${
                         isActive
-                          ? "bg-red-600 text-white"
+                          ? `${branding.activeBackground} text-white`
                           : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200"
                       }`
                     }
@@ -575,7 +697,7 @@ export default function DashboardLayout() {
   );
 
   const footerButton =
-    "w-full flex items-center gap-3 rounded-xl text-sm text-blue-100/90 hover:text-white hover:bg-white/10 transition";
+    "w-full flex items-center gap-3 rounded-xl text-sm text-white/90 hover:text-white hover:bg-white/10 transition";
 
   return (
     <div className="min-h-screen flex bg-slate-100 dark:bg-slate-950">
@@ -583,25 +705,34 @@ export default function DashboardLayout() {
       <aside
         className={`hidden lg:flex ${
           collapsed ? "w-[4.5rem]" : "w-64"
-        } shrink-0 sticky top-0 h-screen flex-col bg-gradient-to-b from-red-700 via-red-700 to-red-600 text-white transition-[width] duration-200`}
+        } shrink-0 sticky top-0 h-screen flex-col overflow-hidden ${branding.sidebar} text-white transition-[width] duration-200`}
       >
+        {/* Organisation logo and name */}
         <div
-          className={`flex items-center gap-3 border-b border-white/10 py-6 ${
+          className={`flex shrink-0 items-center gap-3 border-b border-white/10 py-6 ${
             collapsed ? "justify-center" : "px-5"
           }`}
         >
-          <div className="h-14 w-14 rounded-xl bg-white flex items-center justify-center text-red-700 font-extrabold text-lg shrink-0 shadow-md">
-            <img
-              src="/RedantLogo.webp"
-              alt="Red ant International"
-              className="max-h-full max-w-full object-contain"
-            />
+          <div
+            className={`h-14 w-14 rounded-xl ${branding.logoBackground} flex items-center justify-center font-extrabold text-lg shrink-0 shadow-md overflow-hidden`}
+          >
+            {branding.logo ? (
+              <img
+                src={branding.logo}
+                alt={branding.logoAlt}
+                className="max-h-full max-w-full object-contain"
+              />
+            ) : (
+              <span className="text-sm font-black tracking-tight">Juakali</span>
+            )}
           </div>
+
           {!collapsed && (
-            <span className="font-bold text-white">RedAnt Portal</span>
+            <span className="font-bold text-white">{branding.name}</span>
           )}
         </div>
 
+        {/* Full-height navigation. Scrollbar is hidden but scrolling remains enabled. */}
         <nav className="sidebar-scrollbar min-h-0 flex-1 overflow-y-scroll px-3 py-4 space-y-1">
           {sidebarLinks(everyone)}
 
@@ -612,7 +743,7 @@ export default function DashboardLayout() {
             </>
           )}
 
-          {canReview && (
+          {canReviewLeave && (
             <>
               {sectionHeading("Review")}
               {sidebarLinks(reviewItems)}
@@ -623,7 +754,7 @@ export default function DashboardLayout() {
           {sidebarGroups(visibleGroups)}
         </nav>
 
-        <div className="border-t border-white/10 p-3 space-y-1">
+        <div className="shrink-0 border-t border-white/10 p-3 space-y-1">
           <button
             onClick={logout}
             title={collapsed ? "Log out" : undefined}
@@ -657,16 +788,24 @@ export default function DashboardLayout() {
       {/* Main content */}
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="sticky top-0 z-30 flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-3 bg-slate-100/90 dark:bg-slate-950/90 backdrop-blur">
+          {/* Mobile organisation logo */}
           <div className="flex items-center gap-3 lg:hidden">
-            <div className="h-9 w-9 rounded-xl bg-red-600 flex items-center justify-center text-white text-sm font-extrabold shadow">
-              <img
-                src="/RedantLogo.webp"
-                alt="Red ant International"
-                className="max-h-full max-w-full object-contain"
-              />
+            <div
+              className={`h-9 w-9 rounded-xl ${branding.logoBackground} flex items-center justify-center text-xs font-extrabold shadow overflow-hidden`}
+            >
+              {branding.logo ? (
+                <img
+                  src={branding.logo}
+                  alt={branding.logoAlt}
+                  className="max-h-full max-w-full object-contain"
+                />
+              ) : (
+                <span>J</span>
+              )}
             </div>
+
             <span className="font-bold text-slate-800 dark:text-slate-100">
-              Red Ant Portal
+              {branding.name}
             </span>
           </div>
 
@@ -674,7 +813,7 @@ export default function DashboardLayout() {
             <button
               onClick={toggle}
               aria-label="Toggle light and dark mode"
-              className="h-10 w-10 rounded-full bg-white dark:bg-slate-800 shadow flex items-center justify-center text-slate-600 dark:text-red-400 hover:scale-105 transition"
+              className="h-10 w-10 rounded-full bg-white dark:bg-slate-800 shadow flex items-center justify-center text-slate-600 dark:text-slate-300 hover:scale-105 transition"
             >
               {theme === "dark" ? (
                 <Sun className="h-4 w-4" />
@@ -695,7 +834,9 @@ export default function DashboardLayout() {
                 <Bell className="h-[23px] w-[23px]" strokeWidth={2.2} />
 
                 {unreadCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-[19px] min-w-[19px] items-center justify-center rounded-full border-2 border-slate-100 dark:border-slate-950 bg-red-600 px-1 text-[10px] font-bold leading-none text-white">
+                  <span
+                    className={`absolute -right-0.5 -top-0.5 flex h-[19px] min-w-[19px] items-center justify-center rounded-full border-2 border-slate-100 dark:border-slate-950 ${branding.notificationBackground} px-1 text-[10px] font-bold leading-none text-white`}
+                  >
                     {displayCount}
                   </span>
                 )}
@@ -725,7 +866,7 @@ export default function DashboardLayout() {
                         <button
                           type="button"
                           onClick={markAllAsRead}
-                          className="flex items-center gap-1.5 text-xs font-medium text-red-700 hover:text-red-800 dark:text-red-400"
+                          className={`flex items-center gap-1.5 text-xs font-medium ${branding.notificationText}`}
                         >
                           <CheckCheck size={15} />
                           Mark all read
@@ -752,14 +893,14 @@ export default function DashboardLayout() {
                           <div
                             key={item.id}
                             className={`flex gap-3 border-b border-slate-100 px-4 py-4 dark:border-slate-800 ${
-                              !item.read
-                                ? "bg-red-50/50 dark:bg-red-950/20"
-                                : ""
+                              !item.read ? branding.notificationTint : ""
                             }`}
                           >
                             <span
                               className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                                item.read ? "bg-transparent" : "bg-red-600"
+                                item.read
+                                  ? "bg-transparent"
+                                  : branding.notificationBackground
                               }`}
                             />
 
@@ -785,7 +926,7 @@ export default function DashboardLayout() {
                                         markAsRead(item.id);
                                         setNotificationOpen(false);
                                       }}
-                                      className="text-xs font-semibold text-red-700 hover:underline dark:text-red-400"
+                                      className={`text-xs font-semibold hover:underline ${branding.notificationText}`}
                                     >
                                       View
                                     </NavLink>
@@ -808,10 +949,6 @@ export default function DashboardLayout() {
                           </div>
                         ))
                       )}
-                    </div>
-
-                    <div className="hidden">
-                      {/* Preserves the existing notification panel structure. */}
                     </div>
                   </div>
                 </>
@@ -837,23 +974,31 @@ export default function DashboardLayout() {
 
       {/* Mobile bottom navigation */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
-        <ul className="grid grid-cols-5">
+        <ul
+          className="grid"
+          style={{
+            gridTemplateColumns: `repeat(${tabs.length + 1}, minmax(0, 1fr))`,
+          }}
+        >
           {tabs.map(({ to, label, icon: Icon }) => (
             <li key={to}>
               <NavLink
                 to={to}
-                end={to === "/"}
-                className={({ isActive }) => tabClass(isActive)}
+                end
+                className={({ isActive }) =>
+                  tabClass(isActive, branding.activeText)
+                }
               >
                 {Icon && <Icon className="h-5 w-5" />}
                 <span className="text-[11px] font-medium">{label}</span>
               </NavLink>
             </li>
           ))}
+
           <li>
             <button
               onClick={() => setMoreOpen(true)}
-              className={tabClass(moreActive)}
+              className={tabClass(moreActive, branding.activeText)}
             >
               <Menu className="h-5 w-5" />
               <span className="text-[11px] font-medium">More</span>
@@ -905,7 +1050,7 @@ export default function DashboardLayout() {
               </>
             )}
 
-            {canReview && (
+            {canReviewLeave && (
               <>
                 {sheetHeading("Review")}
                 {sheetLinks(reviewItems)}
@@ -960,7 +1105,7 @@ export default function DashboardLayout() {
                 <NavLink
                   to={liveNotice.target}
                   onClick={() => setLiveNotice(null)}
-                  className="mt-3 inline-flex text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400"
+                  className={`mt-3 inline-flex text-sm font-semibold ${branding.activeText}`}
                 >
                   Open activity
                 </NavLink>

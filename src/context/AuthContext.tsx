@@ -50,29 +50,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchProfile = useCallback(async (): Promise<Profile> => {
-    const me = (await api.get("/users/me")).data;
+  const me = (await api.get("/users/me")).data;
 
-    let departmentName: string | null = null;
+  let departmentName: string | null = null;
 
-    if (me.department_id) {
-      const department = (await api.get("/departments/mine")).data;
-      departmentName = department.name ?? null;
-    }
+  if (me.department_id) {
+    const department = (await api.get("/departments/mine")).data;
+    departmentName = department.name ?? null;
+  }
 
-    return {
-      id: me.id,
-      full_name: me.full_name,
-      email: me.email,
-      role: me.role,
-      start_date: me.start_date,
-      department_name: departmentName,
-      isHr: departmentName?.trim().toLowerCase() === "hr",
-      must_change_password: me.must_change_password,
-      welcome_shown: me.welcome_shown,
-      needs_wizard: me.needs_wizard,
-      missing_documents: me.missing_documents,
-    };
-  }, []);
+  return {
+    id: me.id,
+    full_name: me.full_name,
+    email: me.email,
+    role: me.role,
+    organisation: me.organisation ?? "red_ant", // Pass organisation to DashboardLayout
+    start_date: me.start_date,
+    department_name: departmentName,
+    isHr: departmentName?.trim().toLowerCase() === "hr",
+    must_change_password: me.must_change_password,
+    welcome_shown: me.welcome_shown,
+    needs_wizard: me.needs_wizard,
+    missing_documents: me.missing_documents,
+  };
+}, []);
 
   const refreshProfile = useCallback(async () => {
     setProfile(await fetchProfile());

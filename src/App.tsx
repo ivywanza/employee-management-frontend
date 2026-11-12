@@ -1,37 +1,45 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import { AuthProvider } from "./context/AuthContext";
 import { LiveProvider } from "./context/LiveProvider";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import OnboardingGate from "./components/OnboardingGate";
 import DashboardLayout from "./components/DashboardLayout";
+
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import Setup from "./pages/Setup";
 import Welcome from "./pages/Welcome";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
+
 import Leave from "./pages/Leave";
 import ReviewLeave from "./pages/ReviewLeave";
 import MySubmissions from "./pages/MySubmissions";
+
 import DocumentHub from "./pages/DocumentHub";
 import ManageDocuments from "./pages/ManageDocuments";
 import ReviewOnboarding from "./pages/ReviewOnboarding";
-import EmployeeList from "./pages/EmployeeList";
-// import Messages from "./pages/Message";
 import OnboardingDocs from "./pages/OnboardingDocuments";
+
+import EmployeeList from "./pages/EmployeeList";
+
 import SubmitGrievance from "./pages/grievances/SubmitGrievance";
-import {
-  GrievancesView,
-  // GrievancesManage,
-} from "./pages/grievances/GrievanceBoard";
+import { GrievancesView } from "./pages/grievances/GrievanceBoard";
+
 import RequisitionForm from "./pages/requisitions/RequisitionForm";
 import RequisitionsAdmin from "./pages/requisitions/RequisitionsAdmin";
+import MyRequisitions from "./pages/requisitions/MyRequisitions";
+
 import Departments from "./pages/Departments";
+
 import AssetsPage from "./pages/Assets";
 import AcceptAssetAssignment from "./pages/AcceptAssetAssignment";
 import AssetOperations from "./pages/AssetOperations";
-import MyRequisitions from "./pages/requisitions/MyRequisitions";
 
+import MonthlySales from "./pages/MonthlySales";
+import ReviewSales from "./pages/ReviewSales";
 
 export default function App() {
   return (
@@ -39,9 +47,11 @@ export default function App() {
       <AuthProvider>
         <LiveProvider>
           <Routes>
+            {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
+            {/* Authenticated routes */}
             <Route
               element={
                 <ProtectedRoute>
@@ -49,51 +59,68 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
+              {/* Account setup and welcome */}
               <Route path="/setup" element={<Setup />} />
               <Route path="/welcome" element={<Welcome />} />
 
+              {/* Main dashboard */}
               <Route element={<DashboardLayout />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/leave" element={<Leave />} />
-                <Route path="/onboarding" element={<OnboardingDocs />} />
-                <Route path="/leave" element={<Leave />} />
-                {/* <Route path="/messages" element={<Messages />} /> */}
-                <Route path="/documents" element={<DocumentHub />} />
-                <Route path="/my-submissions" element={<MySubmissions />} />
-                <Route path="/review-leave" element={<ReviewLeave />} />
-                <Route path="/manage-documents" element={<ManageDocuments />} />
+                <Route index element={<Home />} />
+
+                {/* Leave management */}
+                <Route path="leave" element={<Leave />} />
+                <Route path="review-leave" element={<ReviewLeave />} />
+                <Route path="my-submissions" element={<MySubmissions />} />
+
+                {/* Onboarding */}
+                <Route path="onboarding" element={<OnboardingDocs />} />
                 <Route
-                  path="/assets/accept-assignment"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["employee", "admin", "superadmin"]}
-                    >
-                      <AcceptAssetAssignment />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/assets/operations"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["employee", "admin", "superadmin"]}
-                    >
-                      <AssetOperations />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/review-onboarding"
+                  path="review-onboarding"
                   element={<ReviewOnboarding />}
                 />
-                <Route path="/associates" element={<EmployeeList />} />
+
+                {/* Documents */}
+                <Route path="documents" element={<DocumentHub />} />
+                <Route path="manage-documents" element={<ManageDocuments />} />
+
+                {/* Associates */}
+                <Route path="associates" element={<EmployeeList />} />
+
+                {/* Bella Organics monthly sales */}
+                <Route path="monthly-sales" element={<MonthlySales />} />
                 <Route
-                  path="/grievances/submit"
-                  element={<SubmitGrievance />}
+                  path="monthly-sales/review"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["admin", "hr", "superadmin"]}
+                    >
+                      <ReviewSales />
+                    </ProtectedRoute>
+                  }
                 />
-                <Route path="/grievances/view" element={<GrievancesView />} />{" "}
+
+                {/* Grievances */}
+                <Route path="grievances/submit" element={<SubmitGrievance />} />
                 <Route
-                  path="/departments"
+                  path="grievances/view"
+                  element={
+                    <ProtectedRoute allowedRoles={["superadmin"]}>
+                      <GrievancesView />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="grievances/inbox"
+                  element={
+                    <ProtectedRoute allowedRoles={["superadmin"]}>
+                      <GrievancesView />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Departments */}
+                <Route
+                  path="departments"
                   element={
                     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
                       <Departments />
@@ -101,15 +128,17 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/departments/manage"
+                  path="departments/manage"
                   element={
                     <ProtectedRoute allowedRoles={["superadmin"]}>
                       <Departments />
                     </ProtectedRoute>
                   }
                 />
+
+                {/* Assets */}
                 <Route
-                  path="/assets"
+                  path="assets"
                   element={
                     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
                       <AssetsPage mode="view" />
@@ -117,7 +146,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/assets/mine"
+                  path="assets/mine"
                   element={
                     <ProtectedRoute
                       allowedRoles={["employee", "admin", "superadmin"]}
@@ -127,7 +156,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/assets/requests"
+                  path="assets/requests"
                   element={
                     <ProtectedRoute
                       allowedRoles={["employee", "admin", "superadmin"]}
@@ -137,48 +166,42 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/assets/manage"
+                  path="assets/manage"
                   element={
                     <ProtectedRoute allowedRoles={["superadmin"]}>
                       <AssetsPage mode="manage" />
                     </ProtectedRoute>
                   }
                 />
-                {/* managers only */}
                 <Route
-                  path="/grievances/submit"
-                  element={<SubmitGrievance />}
-                />
-                <Route
-                  path="/grievances/inbox"
+                  path="assets/accept-assignment"
                   element={
-                    <ProtectedRoute allowedRoles={["superadmin"]}>
-                      <GrievancesView />
+                    <ProtectedRoute
+                      allowedRoles={["employee", "admin", "superadmin"]}
+                    >
+                      <AcceptAssetAssignment />
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/grievances/view"
+                  path="assets/operations"
                   element={
-                    <ProtectedRoute allowedRoles={["superadmin"]}>
-                      <GrievancesView />
+                    <ProtectedRoute
+                      allowedRoles={["employee", "admin", "superadmin"]}
+                    >
+                      <AssetOperations />
                     </ProtectedRoute>
                   }
                 />
+
+                {/* Requisitions */}
                 <Route
-                  path="/requisitions/submit"
+                  path="requisitions/submit"
                   element={<RequisitionForm />}
                 />
+                <Route path="requisitions/mine" element={<MyRequisitions />} />
                 <Route
-                  path="/requisitions/mine"
-                  element={
-                    <ProtectedRoute>
-                      <MyRequisitions />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/requisitions"
+                  path="requisitions"
                   element={
                     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
                       <RequisitionsAdmin />
@@ -186,7 +209,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/requisitions/review"
+                  path="requisitions/review"
                   element={
                     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
                       <RequisitionsAdmin />
@@ -194,18 +217,21 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/requisitions/manage"
+                  path="requisitions/manage"
                   element={
                     <ProtectedRoute allowedRoles={["superadmin"]}>
                       <RequisitionsAdmin />
                     </ProtectedRoute>
                   }
                 />
-                {/* admin + superadmin */}
+
+                {/* Add associate */}
                 <Route
-                  path="/add-associate"
+                  path="add-associate"
                   element={
-                    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+                    <ProtectedRoute
+                      allowedRoles={["admin", "hr", "superadmin"]}
+                    >
                       <Register />
                     </ProtectedRoute>
                   }
@@ -213,6 +239,7 @@ export default function App() {
               </Route>
             </Route>
 
+            {/* Unknown routes */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </LiveProvider>

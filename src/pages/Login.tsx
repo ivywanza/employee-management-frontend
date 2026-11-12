@@ -44,7 +44,7 @@ export default function Login() {
               <img src="/RedantLogo.webp" alt="Redant International"/>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">RedAnt Portal</h1>
+              <h1 className="text-xl font-bold text-white">Red Ant Portal</h1>
               <p className="text-blue-100 text-sm mt-0.5">
                 Sign in with your Email and Password
               </p>

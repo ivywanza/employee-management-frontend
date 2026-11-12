@@ -1,11 +1,41 @@
+
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import { useAuth } from "../context/auth";
 
 const EMOJIS = ["🎉", "🎊", "🥳", "✨", "🎈", "🎁", "🌟"];
-const WORDS = ["Welcome", "To", "Redant", "International"];
 const DURATION_MS = 6500;
+
+const BRANDS = {
+  red_ant: {
+    name: "Red Ant International",
+    words: ["Welcome", "To", "Red Ant", "International"],
+    background: "bg-red-700",
+    accent: "text-red-400",
+    subtitle: "text-blue-100",
+    button: "bg-red-500",
+    logo: null,
+  },
+  bella_organics: {
+    name: "Bella Organics",
+    words: ["Welcome", "To", "Bella", "Organics"],
+    background: "bg-green-800",
+    accent: "text-lime-300",
+    subtitle: "text-green-100",
+    button: "bg-lime-500",
+    logo: "/BellaLogo.png",
+  },
+  juakali: {
+    name: "Juakali",
+    words: ["Welcome", "To", "Juakali"],
+    background: "bg-stone-900",
+    accent: "text-amber-400",
+    subtitle: "text-stone-200",
+    button: "bg-amber-600",
+    logo: null,
+  },
+};
 
 function makeConfetti() {
   return Array.from({ length: 38 }, (_, i) => ({
@@ -22,15 +52,22 @@ export default function Welcome() {
   const { profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [confetti] = useState(makeConfetti);
+
   const firstName = profile?.full_name.split(" ")[0] ?? "";
+
+  const organisation = profile?.organisation ?? "red_ant";
+
+  const brand =
+    BRANDS[organisation as keyof typeof BRANDS] ?? BRANDS.red_ant;
 
   const finish = useCallback(async () => {
     try {
       await api.post("/users/me/welcome-seen");
       await refreshProfile();
     } catch {
-      // carry on to the dashboard anyway
+      // Continue to the dashboard if the welcome status request fails.
     }
+
     navigate("/", { replace: true });
   }, [navigate, refreshProfile]);
 
@@ -40,7 +77,9 @@ export default function Welcome() {
   }, [finish]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-amber-500 flex flex-col items-center justify-center px-6 text-center">
+    <div
+      className={`relative min-h-screen overflow-hidden ${brand.background} flex flex-col items-center justify-center px-6 text-center`}
+    >
       {confetti.map((c) => (
         <span
           key={c.id}
@@ -58,11 +97,21 @@ export default function Welcome() {
       ))}
 
       <div className="relative z-10 max-w-5xl">
-        <h1 className="flex flex-wrap justify-center gap-x-4 sm:gap-x-6 gap-y-1 text-5xl sm:text-7xl lg:text-8xl font-extrabold leading-tight">
-          {WORDS.map((word, i) => (
+        {brand.logo && (
+          <img
+            src={brand.logo}
+            alt={brand.name}
+            className="mx-auto mb-8 h-20 max-w-48 object-contain"
+          />
+        )}
+
+        <h1 className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-5xl font-extrabold leading-tight sm:gap-x-6 sm:text-7xl lg:text-8xl">
+          {brand.words.map((word, i) => (
             <span
-              key={word}
-              className={`welcome-word ${i >= 2 ? "text-red-400" : "text-white"}`}
+              key={`${word}-${i}`}
+              className={`welcome-word ${
+                i >= 2 ? brand.accent : "text-white"
+              }`}
               style={{ animationDelay: `${0.3 + i * 0.35}s` }}
             >
               {word}
@@ -70,18 +119,25 @@ export default function Welcome() {
           ))}
         </h1>
 
-        <p className="welcome-word mt-8 text-lg sm:text-2xl text-blue-100" style={{ animationDelay: "1.9s" }}>
-          We're glad you're here{firstName ? `, ${firstName}` : ""}. Getting your workspace ready...
+        <p
+          className={`welcome-word mt-8 text-lg sm:text-2xl ${brand.subtitle}`}
+          style={{ animationDelay: "1.9s" }}
+        >
+          We're glad you're here{firstName ? `, ${firstName}` : ""}.
+          {" "}Getting your workspace ready...
         </p>
 
-        <div className="mt-10 mx-auto h-1.5 w-64 sm:w-80 rounded-full bg-white/15 overflow-hidden">
-          <div className="welcome-bar h-full rounded-full bg-red-500" />
+        <div className="mx-auto mt-10 h-1.5 w-64 overflow-hidden rounded-full bg-white/15 sm:w-80">
+          <div
+            className={`welcome-bar h-full rounded-full ${brand.button}`}
+          />
         </div>
       </div>
 
       <button
+        type="button"
         onClick={() => void finish()}
-        className="absolute bottom-6 z-10 text-sm text-blue-200/80 hover:text-white underline underline-offset-4"
+        className="absolute bottom-6 z-10 text-sm text-white/80 underline underline-offset-4 hover:text-white"
       >
         Skip
       </button>

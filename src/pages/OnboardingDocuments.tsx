@@ -5,9 +5,11 @@ import api from "../lib/api";
 const REQUIRED_DOCS = [
   "National ID",
   "KRA PIN Certificate",
+  "Passport Photo",
   "CV",
   "Police Clearance Certificate",
   "CRB Compliance Certificate",
+  "Tax Compliance Certificate"
 ];
 const OPTIONAL_DOCS = new Set(["Police Clearance Certificate"]);
 
@@ -121,7 +123,7 @@ export default function OnboardingDocs() {
                     {existing.reviewed ? "Reviewed" : "Pending"}
                   </span>
                 ) : (
-                  <label className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg bg-red-700 hover:bg-blue-950 text-white cursor-pointer transition">
+                  <label className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white cursor-pointer transition">
                     {uploadingType === type ? (
                       "Uploading..."
                     ) : (
