@@ -484,7 +484,6 @@ const handleOrganisationChange = async (
                   <option value="employee">Employee</option>
                   <option value="admin">Admin</option>
                   <option value="hr">HR</option>
-                  <option value="superadmin">Superadmin</option>
                 </select>
               </div>
 

@@ -267,7 +267,7 @@ const reviewItems: NavItem[] = [
           to: "/grievances/submit",
           label: "Submit Grievance",
           icon: MessageSquareWarning,
-          roles: ALL_ROLES,
+          roles: ["employee", "admin", "hr"],
         },
         {
           to: "/grievances/inbox",
@@ -297,7 +297,7 @@ const reviewItems: NavItem[] = [
           to: "/assets/requests",
           label: "Request an Asset",
           icon: ClipboardCheck,
-          roles: ALL_ROLES,
+          roles: ["employee", "admin", "hr"],
         },
         {
           to: "/assets/manage",
