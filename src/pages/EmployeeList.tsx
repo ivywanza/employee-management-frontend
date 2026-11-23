@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -38,6 +39,7 @@ interface EditForm {
   role: string;
   organisation: Organisation;
   department_id: string;
+  start_date: string;
 }
 
 const ORGANISATIONS: { value: Organisation; label: string }[] = [
@@ -123,6 +125,7 @@ export default function EmployeeList() {
     role: "employee",
     organisation: "red_ant",
     department_id: "",
+    start_date: "",
   });
 
   const [savingEdit, setSavingEdit] = useState(false);
@@ -204,6 +207,9 @@ export default function EmployeeList() {
       role: employee.role,
       organisation: employee.organisation,
       department_id: employee.department_id ?? "",
+      start_date: employee.start_date
+        ? employee.start_date.slice(0, 10)
+        : "",
     });
 
     setError("");
@@ -212,21 +218,21 @@ export default function EmployeeList() {
     void fetchOrganisationDepartments(employee.organisation);
   };
 
-const handleOrganisationChange = async (
-  organisation: Organisation,
-) => {
-  if (!isSuperAdmin && organisation !== profile?.organisation) {
-    return;
-  }
+  const handleOrganisationChange = async (
+    organisation: Organisation,
+  ) => {
+    if (!isSuperAdmin && organisation !== profile?.organisation) {
+      return;
+    }
 
-  setEditForm((prev) => ({
-    ...prev,
-    organisation,
-    department_id: "",
-  }));
+    setEditForm((prev) => ({
+      ...prev,
+      organisation,
+      department_id: "",
+    }));
 
-  await fetchOrganisationDepartments(organisation);
-};
+    await fetchOrganisationDepartments(organisation);
+  };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -235,6 +241,11 @@ const handleOrganisationChange = async (
 
     if (!editForm.full_name.trim() || !editForm.email.trim()) {
       setError("Employee name and email are required.");
+      return;
+    }
+
+    if (!editForm.start_date) {
+      setError("Employee start date is required.");
       return;
     }
 
@@ -249,6 +260,7 @@ const handleOrganisationChange = async (
         role: editForm.role,
         organisation: editForm.organisation,
         department_id: editForm.department_id || null,
+        start_date: editForm.start_date,
       });
 
       setEmployees((prev) =>
@@ -461,6 +473,25 @@ const handleOrganisationChange = async (
                     setEditForm((prev) => ({
                       ...prev,
                       email: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+
+              {/* Editable start date */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Start date
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={editForm.start_date}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      start_date: e.target.value,
                     }))
                   }
                   className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-500"
